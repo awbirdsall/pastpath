@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="https://getbootstrap.com/favicon.ico">
+
+    <title>Starter Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../static/css/starter-template.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+          <a class="navbar-brand" href="#">Histmarker</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+              <a class="nav-link" href="/input_loc">Start <span class="sr-only">(current)</span></a>
+          </li>
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+
+      <div class="starter-template">
+        <h2>Step Two</h2>
+        <p class="lead"><a href="/input_loc">Start over</a></p>
+      </div>
+
+      <div class="container">
+          <div class="starter-template">
+              <h3>Choose a starting point:</h3>
+              <p class="lead">Here are some nearby markers. Which one is most
+              interesting to you? Your route will include similar markers.</p>
+          </div>
+
+          <form action="output", method="GET">
+
+              
+
+        <table class="table table-hover">
+            <tr>
+                <th></th>
+                <th>title</th>
+                <th>sample text</th>
+                <th>categories</th></tr>
+            {% for marker in markers.itertuples() %}
+            <tr>
+                <td>
+                 <div class="radio">
+                     <input type="radio" name='start_marker' value={{ marker['marker_id'] }} id={{ marker['marker_id'] }}/>
+                     <label for={{ marker['marker_id'] }}>Choose this</label>
+                 </div>
+                </td>
+                <td><a href="{{ marker['url'] }}">
+                        {{ marker['title'] }}
+                    </a>
+                </td>
+                <td>{{ marker['text'][:280] }}...</td>
+                <td>{{ marker['categories'][1:-1] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <div class="form-group">
+            <label for="radius">Maximum distance from start (mi)</label>
+            <input type="text" id="radius" name="radius" placeholder="1">
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-default btn-lg">Get route!</button>
+        </div>
+          </form>
+
+        </div>
+
+    </main><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../static/js/jquery-3.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="../static/js/popper.js"></script>
+  
+
+</body></html>

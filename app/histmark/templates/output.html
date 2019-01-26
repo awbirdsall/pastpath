@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="https://getbootstrap.com/favicon.ico">
+
+    <title>Starter Template for Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../static/css/starter-template.css" rel="stylesheet">
+
+    <!-- leaflet -->
+     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+      <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+          <a class="navbar-brand" href="#">Histmarker</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+              <a class="nav-link" href="/input_loc">Start <span class="sr-only">(current)</span></a>
+          </li>
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+
+      <div class="starter-template">
+        <h2>Output Page</h2>
+        <p class="lead">Here is your route!</p>
+      </div>
+
+<div id="map" style="height: 250px;"></div>
+<script type="text/javascript">
+  // The first parameter are the coordinates of the center of the map
+  // The second parameter is the zoom level
+    var map = L.map('map').setView({{ map_center }}, 13);
+  
+  // {s}, {z}, {x} and {y} are placeholders for map tiles
+  // {x} and {y} are the x/y of where you are on the map
+  // {z} is the zoom level
+  // {s} is the subdomain of cartodb
+    var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+  });
+  
+  // add markers
+  
+            {% for marker in markers.itertuples() %}
+var marker = L.marker([{{ marker['lat'] }}, {{ marker['lon'] }}]).addTo(map)
+    .bindPopup("{{ marker['title'] }}");
+            {% endfor %}
+
+  // add route
+var latlngs = {{ route_polylines }};
+var polyline = L.polyline(latlngs, {color: 'red'}).addTo(map);
+
+  // Now add the layer onto the map
+  map.addLayer(layer);
+  map.fitBounds(polyline.getBounds());
+</script>
+
+          <div class="starter-template">
+
+              <p><b>Route overview:</b> {{ route_str }}</p>
+              <p><b>Optimized route duration:</b> {{ optimal_duration }} minutes</p>
+
+              <h4>Route Table</h4>
+
+        <table class="table table-hover">
+            <tr>
+                <th>Stop #</th>
+                <th>title</th>
+                <th>abbreviated text</th>
+                <th>categories</th>
+                <th>named entities</th>
+            </tr>
+            {% for marker in markers.itertuples() %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td><a href="{{ marker['url'] }}">
+                        {{ marker['title'] }}
+                    </a>
+                </td>
+                <td>{{ marker['text'][:280] }}...</td>
+                <td>{{ marker['categories'] }}</td>
+                <td>{{ marker['marker_ents'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+          </div>
+
+    <div class="starter-template">
+          <h3><a href="/input_loc">Start Over</a></h3>
+    </div>
+
+
+    </main><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../static/js/jquery-3.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="../static/js/popper.js"></script>
+  
+
+</body></html>

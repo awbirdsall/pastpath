@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="https://getbootstrap.com/favicon.ico">
+
+    <title>Map router</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../static/css/starter-template.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand" href="#">Histmarker</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+              <a class="nav-link" href="/input_loc">Start <span class="sr-only">(current)</span></a>
+          </li>
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+
+      <div class="starter-template">
+        <h2>Input Page</h2>
+        <p class="lead">Where are you starting? We'll find some
+        choices near you for a historic marker starting point.</p>
+      </div>
+
+    <div class="container">
+    <form action="/choose_start" method="GET">
+        <div class="form-group">
+            <label for="lat">Lat:</label>
+            <input type="text" id="lat" name="lat" placeholder="e.g. ">
+        </div>
+        <div class="form-group">
+            <label for="lon">Lon:</label>
+            <input type="text" id="lon" name="lon" placeholder="e.g. ">
+        </div>
+
+        <div>
+            <button type="submit" class="btn btn-default btn-lg">Find
+            nearby markers!</button>
+        </div>
+    </form>
+    </div>
+
+    <div class="container">
+        <p class="lead">Example locations:</p>
+        <ul>
+            <li>Vietnam Veterans Memorial<br>38.891442<br>-77.047691</li>
+            <li>Walter E. Washington Convention Center<br>38.903042<br>-77.023482</li>
+            <li>Frederick Douglas National Historic Site<br>38.863310<br>-76.985807</li>
+            <li>RFK Stadium<br>38.889596<br>-76.973880</li>
+            <li>Georgetown Waterfront Park<br>38.903059<br>-77.065944</li>
+    </div>
+
+
+    </main><!-- /.container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../static/js/jquery-3.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
+    <script src="../static/js/popper.js"></script>
+  
+
+</body></html>
