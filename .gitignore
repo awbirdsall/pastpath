@@ -3,3 +3,4 @@ app/instance/
 __pycache__/
 *.swp
 *.pyc
+scripts/config.py
