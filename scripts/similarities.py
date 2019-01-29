@@ -72,3 +72,4 @@ if __name__ == '__main__':
     else:
         csv_out = None
     similarities_pipeline(csv_out)
+    print('similarities.py: done.')

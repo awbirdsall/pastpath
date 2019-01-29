@@ -3,16 +3,8 @@
 '''ner.py : scripts related to named entity recognition and associated cleaning
 '''
 
-import bs4
-from bs4 import BeautifulSoup
-from glob import glob
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import re
-from scipy import sparse
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 import spacy
 from sys import argv
 
@@ -35,12 +27,8 @@ ENTS_TO_DROP = ['limes', 'st', 'rev', "jr", "sr", "john", "wm",
                   'years', 'war', 'NW', 'city', 'east', "west", 'south',
                   'north', 'day', 'first', '–',
                   'mon sun', '©washington post', '°F', 'american',
-                  'americans', "sunday"]
-
-# questionable entities:
-# the District after
-# cultural tourism DC
-# CulturalTourismDC.org
+                  'americans', "sunday", "cultural tourism DC",
+                  "the District after", "CulturalTourismDC.org"]
 
 LABELS_TO_USE = ['DATE', 'EVENT', 'FAC', 'GPE', 'LANGUAGE', 'LAW',
        'LOC', 'NORP', 'ORG', 'PERSON',
@@ -130,8 +118,6 @@ def create_df_ent(df, nlp, remove_doc_dups=False):
             ents_markers.append(i)
             ents_ids.append(row.marker_id)
 
-    # pd.Series(ents_labels).value_counts().plot(kind='bar')
-
     df_ent = pd.DataFrame({'label': ents_labels, 'text': ents_texts,
                            'marker_idx': ents_markers, 'marker_id': ents_ids})
     return df_ent
@@ -202,3 +188,4 @@ if __name__ == '__main__':
     else:
         csv_out = None
     ne_pipeline(csv_out)
+    print('ner.py: done.')
