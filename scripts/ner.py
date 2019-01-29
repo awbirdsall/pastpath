@@ -62,6 +62,7 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r'^civil war.+', 'civil war'),
                      (r'^anacostia.+', 'anacostia'),
                      (r'^georgetown.+', 'georgetown'),
+                     (r'george town', 'georgetown'),
                      (r'^rock creek.+', 'rock creek'),
                      (r'^potomac.+', 'potomac'),
                      (r'(washington, dc|district of columbia|district of colombia|^dc$|^DC$|^washington$|^city of washington$)', 'washington dc'),

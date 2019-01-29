@@ -9,6 +9,7 @@ import random
 
 MARKER_CSV = '../data/190121-all-markers-with-cats.csv'
 ENT_CSV = "../data/190128-df-ent.csv"
+SIM_TFIDF_CSV = "../data/190128-df-sim-tfidf.csv"
 SIM_CSV = "../data/190128-df-sim.csv"
 
 def top_similar_marker_id(marker_id, sim_csv, n=10):
@@ -77,11 +78,11 @@ if __name__ == '__main__':
     print("======")
     print("RANDOM MARKER")
     print("======")
-    top_n_id, top_n_sims = top_similarities_random(MARKER_CSV, SIM_CSV, n=10)
+    top_n_id, top_n_sims = top_similarities_random(MARKER_CSV, SIM_TFIDF_CSV, n=10)
     detailed_text_report(top_n_id, top_n_sims)
 
     print("======")
     print("BARTHOLDI FOUNTAIN MARKER")
     print("======")
-    top_n_id, top_n_sims = top_similar_marker_id(110441, SIM_CSV, n=10)
+    top_n_id, top_n_sims = top_similar_marker_id(110441, SIM_TFIDF_CSV, n=10)
     detailed_text_report(top_n_id, top_n_sims)
