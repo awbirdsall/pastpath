@@ -6,6 +6,7 @@
 import pandas as pd
 from scipy import sparse
 from sklearn.feature_extraction import DictVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sys import argv
 
@@ -22,7 +23,7 @@ def entities_to_encode(df_ent):
     df_ent = df_ent[df_ent.text.isin(ents_to_keep)]
     return df_ent
 
-def encode_entities(df_ent):
+def encode_entities_binary(df_ent):
     # prep df to binary encode each entity as feature
     entity_marker_df = df_ent.loc[:,['text','marker_id']].rename(columns={'text':'entity'})
     grouped = entity_marker_df.groupby('marker_id').entity.apply(lambda lst: tuple((k, 1) for k in lst))
@@ -33,27 +34,38 @@ def encode_entities(df_ent):
 
     # df_ent_obs is dataframe where each column is feature
     df_ent_obs = pd.DataFrame(X, columns=v.get_feature_names(), index=grouped.index)
-    return df_ent_obs
-
-def calc_similarities(df_ent_obs):
     A_sparse = sparse.csr_matrix(df_ent_obs)
-    similarities = cosine_similarity(A_sparse)
-    return similarities
+    return A_sparse
 
-def similarities_pipeline(csv_out):
+def encode_entities_tfidf(df_ent):
+    # prep for TfidfVectorizer using split on _ as analyzer
+    entity_str_per_marker = df_ent.groupby('marker_id').text.agg(lambda x: "_".join(x))
+
+    vectorizer = TfidfVectorizer(analyzer=lambda x: x.split('_'))
+    X = vectorizer.fit_transform(entity_str_per_marker)
+    return X
+
+def similarities_pipeline(csv_out, enc_type='binary'):
     df_ent = load_df_ent()
 
     # only keep entities on multiple markers
     df_ent = entities_to_encode(df_ent)
 
-    # binary encoding of each entity
-    df_ent_obs = encode_entities(df_ent)
+    if enc_type=='binary':
+        # binary encoding of each entity
+        sparse_encoding = encode_entities_binary(df_ent)
+    elif enc_type=='tfidf':
+        sparse_encoding = encode_entities_tfidf(df_ent)
+    else:
+        raise ValueError('invalid enc_type')
 
     # calculate similarity matrix
-    similarities = calc_similarities(df_ent_obs)
+    similarities = cosine_similarity(sparse_encoding)
+
     # put into dataframe with columns and index of marker_id
-    df_sim = pd.DataFrame(similarities, index=df_ent_obs.index)
-    df_sim.columns = df_ent_obs.index
+    marker_ids = df_ent.groupby('marker_id').count().index
+    df_sim = pd.DataFrame(similarities, index=marker_ids)
+    df_sim.columns = marker_ids
 
     print("similarities matrix made. head:")
     print(df_sim.head())
@@ -71,5 +83,5 @@ if __name__ == '__main__':
         csv_out = argv[1]
     else:
         csv_out = None
-    similarities_pipeline(csv_out)
+    similarities_pipeline(csv_out, 'binary')
     print('similarities.py: done.')
