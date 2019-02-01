@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 '''ner.py : scripts related to named entity recognition and associated cleaning
+
+Main task: take MARKER_CSV input and create cleaned up list of named entities
+at csv_out (command line argument)
 '''
 
 import pandas as pd
@@ -37,6 +40,7 @@ LABELS_TO_USE = ['DATE', 'EVENT', 'FAC', 'GPE', 'LANGUAGE', 'LAW',
 CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r"^the |^an |^a |^ ", ""), # starting articles or space
                      (r"\'s$", ""), # ending possessive
+                     (r"\&", "and"), # no ampersands
                      (r'^ill\.$', 'illinois'),
                      (r'^mass\.$', 'massachusetts'),
                      (r'^md\.$', 'maryland'),
@@ -65,6 +69,7 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r'george town', 'georgetown'),
                      (r'^rock creek.+', 'rock creek'),
                      (r'^potomac.+', 'potomac'),
+                     (r'^arts and humanities.+', 'arts and humanities'),
                      (r'(washington, dc|district of columbia|district of colombia|^dc$|^DC$|^washington$|^city of washington$)', 'washington dc'),
                      (r'(^us$|^usa$|^US$|^united states of america$)', 'united states'),
                      ('sally ride dr ride', 'sally ride'),
@@ -152,10 +157,10 @@ def drop_labels_regex(df_ent):
     df_ent = df_ent.loc[~df_ent.text.str.contains(labels_drop_regex)]
     return df_ent
 
-def ne_pipeline(csv_out=None):
-    # combine steps from MARKER_CSV to df_ent of entities
-    print("importing {}".format(MARKER_CSV))
-    df = pd.read_csv(MARKER_CSV).query('cty=="washington_dc"')
+def ne_pipeline(csv_out=None, marker_csv=MARKER_CSV):
+    # combine steps from marker_csv to df_ent of entities
+    print("importing {}".format(marker_csv))
+    df = pd.read_csv(marker_csv).query('cty=="washington_dc"')
     
     print("cleaning marker text")
     df['text_clean'] = standardize_text(df, 'text')
@@ -188,5 +193,5 @@ if __name__ == '__main__':
         csv_out = argv[1]
     else:
         csv_out = None
-    ne_pipeline(csv_out)
+    ne_pipeline(csv_out, marker_csv=MARKER_CSV)
     print('ner.py: done.')

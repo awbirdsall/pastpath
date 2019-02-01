@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 '''similarities.py : similarity calculations
+
+Main task: take entities list at DF_ENT_CSV and calculate a similarities
+matrix for a filtered subset of the entities, saved to csv_out (command line
+argument)
 '''
 
 import pandas as pd

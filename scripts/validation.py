@@ -109,3 +109,9 @@ if __name__ == '__main__':
     print("=====")
     top_n_id, top_n_sims = top_similar_marker_id(100863, SIM_CSV, n=10)
     short_text_report(top_n_id, top_n_sims)
+
+    # pseudocode for validation with clusters:
+    # for cluster in clusters:
+    #   choose (random?) marker near cluster centroid
+    #   find similar markers
+    #   report cluster features and markers
