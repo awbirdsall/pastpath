@@ -5,6 +5,7 @@ import numpy as np
 import sys
 
 def get_closest_starting_markers(lat, lon, df, n):
+    print(df.shape)
     distances = np.array([distance((lat,lon), (lat2, lon2))
         for (lat2, lon2) in zip(df.lat, df.lon)])
     return df.iloc[distances.argsort()[:n]]
@@ -30,6 +31,9 @@ def get_top_locations_close(marker_id, df_similarities, n, df, radius):
     # calculate distances and filter df_similarities df
     distances = np.array([distance((lat,lon), (lat2, lon2)) for (lat2, lon2) in zip(df.lat, df.lon)])
     close_marker_ids = df.iloc[np.where(distances<radius)]['marker_id'].values
+    # print(type(close_marker_ids.astype(str)))
+    # close_marker_ids = np.array([114658, 113216])
+    print(df_similarities.head())
     # can only return len(close_marker_ids) worth of points
     if len(close_marker_ids)<n:
         n = len(close_marker_ids)

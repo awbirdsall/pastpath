@@ -22,14 +22,15 @@ from sklearn.cluster import KMeans
 from sys import argv
 
 # SVD and k means parameters
-N_COMPONENTS = 200
-N_CLUSTERS = 20
+N_COMPONENTS = 100
+N_CLUSTERS = 10
 
 # file paths
 FEAT_CSV_IN = '../data/190130-df-feature-counts.csv'
 
 SIM_CSV_OUT = "../data/190130-df-sim-tfidf.csv"
 CLUST_CSV_OUT = "../data/190130-km-labels.csv"
+CLUST_TOP_TERMS_OUT = "../data/190130-km-top-terms.csv"
 
 def calc_sim_matrix(feat_csv_in=FEAT_CSV_IN, sim_csv_out=SIM_CSV_OUT):
     df_all_counts = pd.read_csv(feat_csv_in, index_col='marker_id')
@@ -48,7 +49,8 @@ def calc_sim_matrix(feat_csv_in=FEAT_CSV_IN, sim_csv_out=SIM_CSV_OUT):
     df_sim_tfidf.to_csv(sim_csv_out)
     return None
 
-def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT):
+def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT,
+        clust_top_terms_out=CLUST_TOP_TERMS_OUT):
     # #### Perform SVD followed by k-means on TF-IDF weighted output.
     # Follow sklearn example:
     # https://scikit-learn.org/stable/auto_examples/text/plot_document_clustering.html#sphx-glr-auto-examples-text-plot-document-clustering-py
@@ -84,11 +86,20 @@ def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT):
     order_centroids = original_space_centroids.argsort()[:, ::-1]
 
     terms = df_all_counts.columns.values
+    top_terms = []
     for i in range(N_CLUSTERS):
+        cluster_terms = []
         print("Cluster %d:" % i, end='')
         for ind in order_centroids[i, :10]:
-            print(' %s' % terms[ind], end='')
+            print(' %s' % terms[ind].split("_")[0], end='')
+            cluster_terms.append(terms[ind].split("_")[0])
         print()
+        top_terms.append(cluster_terms)
+
+    # output top terms per cluster
+
+    df_top_terms = pd.DataFrame(top_terms)
+    df_top_terms.to_csv(clust_top_terms_out)
 
     # ### Output k-means labels
     df_km_label = pd.DataFrame({"km_label": km.labels_}, index=df_all_counts.index)

@@ -60,7 +60,7 @@ def directions_route_duration(route_coords):
               }
 
     route = ors_clnt.directions(**request)
-    # duratino in minutes
+    # duration in minutes
     duration = route['features'][0]['properties']['summary'][0]['duration'] / 60
 
     return route, duration

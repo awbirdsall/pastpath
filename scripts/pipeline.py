@@ -32,6 +32,7 @@ FEAT_FULL_CSV = '../data/190131-feat-full-count.csv'
 SIM_CSV = '../data/190131-sim-tfidf.csv'
 # labels for markers in MARKER_CSV_OUT
 CLUST_CSV = '../data/190131-km-labels.csv'
+CLUST_TOP_TERMS_CSV = '../data/190131-km-top-terms.csv'
 
 ## SQL DB table names
 OUTPUT_TABLE = 'hmdb_data_table'
@@ -58,7 +59,7 @@ def run_pipeline(ner_step=True, cf_step=True, pf_step=True, db_step=True):
         pf.calc_sim_matrix(FEAT_CSV, SIM_CSV)
 
         print("pipeline.py: running process_features.calc_clusters()")
-        pf.calc_clusters(FEAT_CSV, CLUST_CSV)
+        pf.calc_clusters(FEAT_CSV, CLUST_CSV, CLUST_TOP_TERMS_CSV)
 
     if db_step:
         # split features into two parts

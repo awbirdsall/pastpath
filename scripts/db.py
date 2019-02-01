@@ -44,17 +44,14 @@ def add_df_sim(input_csv, output_table, engine):
     df_sim.to_sql(output_table, engine, if_exists='replace')
     return None
 
-def add_df_hmdb_data(input_csv, output_table, engine, input_sim_csv=INPUT_SIM):
-    # add HMDB data array
-    df = pd.read_csv(input_csv).query("cty=='washington_dc'")
-    # also need marker_ids for which similarity metric exists
-    sim_marker_ids = pd.read_csv(input_csv, index_col=0).index.values
-
-    # limit marker table to markers for which similarity metric exists
-    df_to_sql = df[df['marker_id'].isin(sim_marker_ids)]
-
+def add_df_hmdb_data(input_csv, output_table, engine, cluster_csv):
+    # add HMDB data array. already filtered down to what is useful
+    df = pd.read_csv(input_csv)
+    # ugly hack to add cluster_csv column here...
+    df_cluster = pd.read_csv(cluster_csv)
+    df_total = pd.merge(df, df_cluster, on="marker_id", how="left")
     print('adding hmdb data as {}'.format(output_table))
-    df_to_sql.to_sql(output_table, engine, if_exists='replace', index=False)
+    df_total.to_sql(output_table, engine, if_exists='replace', index=False)
     return None
 
 def add_df_ent_two_parts(input_csv, output_table_1, output_table_2, engine):
@@ -68,11 +65,11 @@ def add_df_ent_two_parts(input_csv, output_table_1, output_table_2, engine):
 
     print('adding first half of entity data as {}'.format(output_table_1))
     df_ent_1.to_sql(OUTPUT_ENT_TABLE_1, engine, if_exists='replace',
-            index=False)
+            index=True)
 
     print('adding second half of entity data as {}'.format(output_table_2))
     df_ent_2.to_sql(OUTPUT_ENT_TABLE_2, engine, if_exists='replace',
-            index=False)
+            index=True)
 
     return None
 
@@ -90,7 +87,7 @@ def add_to_sql_pipeline(input_sim=INPUT_SIM, output_sim_table=OUTPUT_SIM_TABLE,
         output_clust_table=OUTPUT_CLUST_TABLE):
     engine = create_connection()
     add_df_sim(input_sim, output_sim_table, engine)
-    add_df_hmdb_data(input_csv, output_table, engine, input_sim)
+    add_df_hmdb_data(input_csv, output_table, engine, input_clust)
     add_df_ent_two_parts(input_ent, output_ent_table_1, output_ent_table_2,
             engine)
     add_df_clust(input_clust, output_clust_table, engine)
