@@ -15,3 +15,4 @@ The code for a web app is in `/app/`. The app is built in Flask and queries a SQ
 - `pandas`
 - `psycopg2`
 - `sqlalchemy`
+- sqlalchemy-utils
