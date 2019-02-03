@@ -1,8 +1,8 @@
 import ast
 from flask import render_template, request
-from histmark import app
-from histmark.markers import get_closest_starting_markers, get_top_locations_close
-from histmark.route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
+from pastpath import app
+from pastpath.markers import get_closest_starting_markers, get_top_locations_close
+from pastpath.route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 import pandas as pd

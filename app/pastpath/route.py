@@ -1,4 +1,4 @@
-'''histmark.route : functions associated with creating routes
+'''pastpath.route : functions associated with creating routes
 '''
 from flask import current_app as app
 from openrouteservice import client, directions, distance_matrix, places

@@ -1,4 +1,4 @@
-'''histmark.markers : functions for historic marker calculations
+'''pastpath.markers : functions for historic marker calculations
 '''
 import math
 import numpy as np

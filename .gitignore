@@ -4,3 +4,4 @@ __pycache__/
 *.swp
 *.pyc
 scripts/config.py
+app/pastpath/static/img/
