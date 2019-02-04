@@ -31,7 +31,9 @@ ENTS_TO_DROP = ['limes', 'st', 'rev', "jr", "sr", "john", "wm",
                   'north', 'day', 'first', '–',
                   'mon sun', '©washington post', '°F', 'american',
                   'americans', "sunday", "cultural tourism DC",
-                  "the District after", "CulturalTourismDC.org"]
+                  "the District after", "CulturalTourismDC.org",
+                  "cultural tourism dc", "cultural tourism, dc",
+                  "culturaltourismdcorg", "goldentriangledccom]
 
 LABELS_TO_USE = ['DATE', 'EVENT', 'FAC', 'GPE', 'LANGUAGE', 'LAW',
        'LOC', 'NORP', 'ORG', 'PERSON',
@@ -40,7 +42,9 @@ LABELS_TO_USE = ['DATE', 'EVENT', 'FAC', 'GPE', 'LANGUAGE', 'LAW',
 CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r"^the |^an |^a |^ ", ""), # starting articles or space
                      (r"\'s$", ""), # ending possessive
-                     (r"\&", "and"), # no ampersands
+                     (r"\’s$", ""), # ending possessive, curvy apostrophe
+                     (r"\&", "and"), # no ampersands (does lead to BandO)
+                     (r"( — | – | - ", " ") # dashes separated by space
                      (r'^ill\.$', 'illinois'),
                      (r'^mass\.$', 'massachusetts'),
                      (r'^md\.$', 'maryland'),
@@ -70,13 +74,18 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r'^rock creek.+', 'rock creek'),
                      (r'^potomac.+', 'potomac'),
                      (r'^arts and humanities.+', 'arts and humanities'),
-                     (r'(washington, dc|district of columbia|district of colombia|^dc$|^DC$|^washington$|^city of washington$)', 'washington dc'),
+                     (r'(washington, dc|district of columbia|district of colombia|^dc$|^DC$|^washington$|^city of washington$|^washington d c$)', 'washington dc'),
                      (r'(^us$|^usa$|^US$|^united states of america$)', 'united states'),
                      ('sally ride dr ride', 'sally ride'),
                      (r'(.+)(?:memorial$|park$|building$|residence$)', r'\1'),
-                     ('^lenfant$', 'pierre lenfant'),
+                     (r'(^lenfant$|^pierre l\'enfant$|^pierre l\'enfant\'s$)', 'pierre lenfant'),
                      (r'(^abe$|^lincoln$|^abe lincoln$)', 'abraham lincoln'),
                      ('susan b anthony 1820   1906', 'susan b anthony'),
+                     (r'^frederick law olmstead$', 'frederick law olmsted'),
+                     (r'^frederick douglas$', 'frederick douglass'),
+                     (r'(^franklin d roosevelt$|^franklin delano roosevelt$)', 'franklin roosevelt'),
+                     (r'^dwight d eisenhower$', 'dwight eisenhower'),
+                     (r'theatre', 'theater') # americanize all theatres!
                      (r'^latin american$', 'latino'),
                      (r'^latinos$', 'latino'),
                      (r'^african americans$', 'african american'),
@@ -84,11 +93,16 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r'^black american$', 'african american'),
                      (r'^scotsmen$', 'scottish'),
                      (r'^(frenchman|frenchmen)$', 'french'),
+                     (r'^germans$', 'german'),
                      (r'^englishman$', 'english'),
+                     (r'^catholics$', 'catholic'),
+                     (r'^jesuits$', 'jesuit'),
+                     (r'^confederates$', 'confederate'),
+                     (r'^war of 18 12$', 'war of 1812')
                     ] 
 
-LABELS_DROP_STRINGS = [r' avenue$', r' $ave', r' street$', r' st$',
-                       r' road$', ' rd$', ' lane$', ' ln$',
+LABELS_DROP_STRINGS = [r' avenue$', r' ave$', r' streets?$', r' st$',
+                       r' road$', ' rd$', ' lane$', ' ln$', r' terrace$',
                        r' (?:avenue|ave|st|street) (?:nw|sw|se|ne)$',
                        r'^\d+ to \d+']
 
