@@ -33,7 +33,7 @@ ENTS_TO_DROP = ['limes', 'st', 'rev', "jr", "sr", "john", "wm",
                   'americans', "sunday", "cultural tourism DC",
                   "the District after", "CulturalTourismDC.org",
                   "cultural tourism dc", "cultural tourism, dc",
-                  "culturaltourismdcorg", "goldentriangledccom]
+                  "culturaltourismdcorg", "goldentriangledccom"]
 
 LABELS_TO_USE = ['DATE', 'EVENT', 'FAC', 'GPE', 'LANGUAGE', 'LAW',
        'LOC', 'NORP', 'ORG', 'PERSON',
@@ -44,7 +44,7 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r"\'s$", ""), # ending possessive
                      (r"\’s$", ""), # ending possessive, curvy apostrophe
                      (r"\&", "and"), # no ampersands (does lead to BandO)
-                     (r"( — | – | - ", " ") # dashes separated by space
+                     (r"( — | – | - )", " "), # dashes separated by space
                      (r'^ill\.$', 'illinois'),
                      (r'^mass\.$', 'massachusetts'),
                      (r'^md\.$', 'maryland'),
@@ -64,7 +64,7 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r"-", " "),
                      (r"(?:about|around|late|early|middle|mid|from|c\.?|the year) (\d\d\d\d)", r"\1"), # approximate years
                      (r"(the end of the|the turn of the) ", ""),
-                     (r"first world war|great war", "world war i"),
+                     (r"(first world war|great war)", "world war i"),
                      (r"second world war", "world war ii"),
                      (r'^american revolution.+', 'american revolution'),
                      (r'^civil war.+', 'civil war'),
@@ -85,7 +85,7 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r'^frederick douglas$', 'frederick douglass'),
                      (r'(^franklin d roosevelt$|^franklin delano roosevelt$)', 'franklin roosevelt'),
                      (r'^dwight d eisenhower$', 'dwight eisenhower'),
-                     (r'theatre', 'theater') # americanize all theatres!
+                     (r'theatre', 'theater'), # americanize all theatres!
                      (r'^latin american$', 'latino'),
                      (r'^latinos$', 'latino'),
                      (r'^african americans$', 'african american'),
