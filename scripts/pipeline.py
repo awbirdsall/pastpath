@@ -13,7 +13,7 @@ import db
 
 # SVD and k means parameters, used in process_features
 N_COMPONENTS = 200
-N_CLUSTERS = 20
+N_CLUSTERS = 15
 
 ## preexisting files
 # processed CSV with marker text and hmdb category labels
@@ -59,7 +59,8 @@ def run_pipeline(ner_step=True, cf_step=True, pf_step=True, db_step=True):
         pf.calc_sim_matrix(FEAT_CSV, SIM_CSV)
 
         print("pipeline.py: running process_features.calc_clusters()")
-        pf.calc_clusters(FEAT_CSV, CLUST_CSV, CLUST_TOP_TERMS_CSV)
+        pf.calc_clusters(FEAT_CSV, CLUST_CSV, CLUST_TOP_TERMS_CSV,
+                N_COMPONENTS, N_CLUSTERS)
 
     if db_step:
         # split features into two parts

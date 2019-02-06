@@ -50,7 +50,7 @@ def calc_sim_matrix(feat_csv_in=FEAT_CSV_IN, sim_csv_out=SIM_CSV_OUT):
     return None
 
 def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT,
-        clust_top_terms_out=CLUST_TOP_TERMS_OUT):
+        clust_top_terms_out=CLUST_TOP_TERMS_OUT, n_components=N_COMPONENTS, n_clusters=N_CLUSTERS):
     # #### Perform SVD followed by k-means on TF-IDF weighted output.
     # Follow sklearn example:
     # https://scikit-learn.org/stable/auto_examples/text/plot_document_clustering.html#sphx-glr-auto-examples-text-plot-document-clustering-py
@@ -63,7 +63,7 @@ def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT,
     # Vectorizer results are normalized, which makes KMeans behave as
     # spherical k-means for better results. Since LSA/SVD results are
     # not normalized, we have to redo the normalization.
-    svd = TruncatedSVD(n_components=N_COMPONENTS)
+    svd = TruncatedSVD(n_components=n_components)
     normalizer = Normalizer(copy=False)
     lsa = make_pipeline(svd, normalizer)
 
@@ -71,7 +71,7 @@ def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT,
 
     explained_variance = svd.explained_variance_ratio_.sum()
 
-    km = KMeans(n_clusters=N_CLUSTERS, init='k-means++', max_iter=100, n_init=1,
+    km = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=100, n_init=1,
                 verbose=True)
 
     km.fit(X)
@@ -87,7 +87,7 @@ def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT,
 
     terms = df_all_counts.columns.values
     top_terms = []
-    for i in range(N_CLUSTERS):
+    for i in range(n_clusters):
         cluster_terms = []
         print("Cluster %d:" % i, end='')
         for ind in order_centroids[i, :10]:
