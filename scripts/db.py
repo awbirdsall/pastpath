@@ -23,14 +23,20 @@ OUTPUT_ENT_TABLE_1 = 'entities_data_table_1'
 OUTPUT_ENT_TABLE_2 = 'entities_data_table_2'
 OUTPUT_CLUST_TABLE = 'clust_table'
 
-def create_connection():
+def create_connection(db_loc='dev'):
+    if db_loc=='dev':
+        db_cfg = cfg.postgres_dev
+    elif db_loc=='production':
+        df_cfg = cfg.postgres_production
+    else:
+        raise ValueError("bad value for db_loc, must be dev or production")
     # Create connection engine to postgres db
     engine_template = 'postgresql://{}:{}@{}:{}/{}'
-    engine = create_engine(engine_template.format(cfg.postgres['USER'],
-                                                  cfg.postgres['KEY'],
-                                                  cfg.postgres['HOST'],
-                                                  cfg.postgres['PORT'],
-                                                  cfg.postgres['DB_NAME']))
+    engine = create_engine(engine_template.format(db_cfg['USER'],
+                                                  db_cfg['KEY'],
+                                                  db_cfg['HOST'],
+                                                  db_cfg['PORT'],
+                                                  db_cfg['DB_NAME']))
     if not database_exists(engine.url):
         create_database(engine.url)
     print("create_connection: database engine url {}".format(engine.url))
@@ -80,12 +86,13 @@ def add_df_clust(input_csv, output_table, engine):
     df_clust.to_sql(output_table, engine, if_exists='replace')
     return None
 
-def add_to_sql_pipeline(input_sim=INPUT_SIM, output_sim_table=OUTPUT_SIM_TABLE,
-        input_csv=INPUT_CSV, output_table=OUTPUT_TABLE, input_ent=INPUT_ENT,
+def add_to_sql_pipeline(db_loc='dev',input_sim=INPUT_SIM,
+        output_sim_table=OUTPUT_SIM_TABLE, input_csv=INPUT_CSV,
+        output_table=OUTPUT_TABLE, input_ent=INPUT_ENT,
         output_ent_table_1=OUTPUT_ENT_TABLE_1,
         output_ent_table_2=OUTPUT_ENT_TABLE_2, input_clust=INPUT_CLUST,
         output_clust_table=OUTPUT_CLUST_TABLE):
-    engine = create_connection()
+    engine = create_connection(db_loc)
     add_df_sim(input_sim, output_sim_table, engine)
     add_df_hmdb_data(input_csv, output_table, engine, input_clust)
     add_df_ent_two_parts(input_ent, output_ent_table_1, output_ent_table_2,
@@ -95,7 +102,7 @@ def add_to_sql_pipeline(input_sim=INPUT_SIM, output_sim_table=OUTPUT_SIM_TABLE,
 
 if __name__ == '__main__':
     print('running db.py from command line')
-    add_to_sql_pipeline(INPUT_SIM, OUTPUT_SIM_TABLE,
+    add_to_sql_pipeline('dev',INPUT_SIM, OUTPUT_SIM_TABLE,
                         INPUT_CSV, OUTPUT_TABLE,
                         INPUT_ENT, OUTPUT_ENT_TABLE_1,
                         OUTPUT_ENT_TABLE_2,

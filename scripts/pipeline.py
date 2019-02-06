@@ -15,24 +15,28 @@ import db
 N_COMPONENTS = 200
 N_CLUSTERS = 15
 
+# database (dev or production)
+DB_LOC = 'dev'
+# DB_LOC = 'production'
+
 ## preexisting files
 # processed CSV with marker text and hmdb category labels
 MARKER_CSV_IN = '../data/190121-all-markers-with-cats.csv'
 
 ## files created/passed along in pipeline
 # recognized entities
-NER_CSV = '../data/190131-ner.csv'
+NER_CSV = '../data/190205-ner.csv'
 # counts of all features, per marker
-FEAT_CSV = '../data/190131-feat-count.csv'
+FEAT_CSV = '../data/190205-feat-count.csv'
 # marker filtered to only include markers listed in FEAT_CSV
-MARKER_CSV_OUT = "../data/190131-marker-out.csv"
+MARKER_CSV_OUT = "../data/190205-marker-out.csv"
 # like FEAT_CSV, but without filtering for number of markers or features
-FEAT_FULL_CSV = '../data/190131-feat-full-count.csv'
+FEAT_FULL_CSV = '../data/190205-feat-full-count.csv'
 # similarity matrix, with index_col = marker_id and columns=marker_id
-SIM_CSV = '../data/190131-sim-tfidf.csv'
+SIM_CSV = '../data/190205-sim-tfidf.csv'
 # labels for markers in MARKER_CSV_OUT
-CLUST_CSV = '../data/190131-km-labels.csv'
-CLUST_TOP_TERMS_CSV = '../data/190131-km-top-terms.csv'
+CLUST_CSV = '../data/190205-km-labels.csv'
+CLUST_TOP_TERMS_CSV = '../data/190205-km-top-terms.csv'
 
 ## SQL DB table names
 OUTPUT_TABLE = 'hmdb_data_table'
@@ -65,7 +69,7 @@ def run_pipeline(ner_step=True, cf_step=True, pf_step=True, db_step=True):
     if db_step:
         # split features into two parts
         print("pipeline.py: running db.add_to_sql_pipeline()")
-        db.add_to_sql_pipeline(SIM_CSV, OUTPUT_SIM_TABLE,
+        db.add_to_sql_pipeline(DB_LOC, SIM_CSV, OUTPUT_SIM_TABLE,
                         MARKER_CSV_OUT, OUTPUT_TABLE,
                         FEAT_CSV, OUTPUT_ENT_TABLE_1,
                         OUTPUT_ENT_TABLE_2,
