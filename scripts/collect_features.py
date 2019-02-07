@@ -130,8 +130,10 @@ def feature_pipeline(ner_csv_in=NER_CSV_IN, feat_csv_out=FEAT_CSV_OUT,
     bar_x = df_decade_counts.sum().index
     bar_height = df_decade_counts.sum()
 
-    df_markercats_counts = pd.DataFrame(df_marker.set_index("marker_id").loc[:,'20th Century':'Women'])
-    df_markercats_counts.columns = [x+"_mc" for x in df_markercats_counts.columns]
+    # dealt with markercats in ner.py
+
+#     df_markercats_counts = pd.DataFrame(df_marker.set_index("marker_id").loc[:,'20th Century':'Women'])
+#     df_markercats_counts.columns = [x+"_mc" for x in df_markercats_counts.columns]
 
     # ## Merge all features together
 
@@ -147,14 +149,14 @@ def feature_pipeline(ner_csv_in=NER_CSV_IN, feat_csv_out=FEAT_CSV_OUT,
     # Looks like sklearn has a way to treat a series of Columns in custom ways
     # with ColumnVectorizer, so I could have done the above more efficiently...
 
-    # All used markers should be in df_marker. Start there for merge.
+    # merge, keeping all marker_ids
     df_all_counts_full = pd.merge(
         pd.merge(
-            pd.merge(
-                df_markercats_counts,
-                df_ent_counts, how='left', on='marker_id'),
-            df_decade_counts, how='left', on='marker_id'),
-        df_wikicats_counts, how='left', on='marker_id').fillna(0).astype(bool)
+            df_ent_counts,
+            df_decade_counts, how='outer', on='marker_id'),
+        df_wikicats_counts, how='outer', on='marker_id').fillna(0).astype(bool)
+    print("merged df_all_counts_full.head():")
+    print(df_all_counts_full.head())
     df_all_counts_full.columns = df_all_counts_full.columns.astype(str)
     # alphabetize columns
     df_all_counts_full = df_all_counts_full.reindex(sorted(df_all_counts_full.columns), axis=1)
@@ -192,3 +194,5 @@ def feature_pipeline(ner_csv_in=NER_CSV_IN, feat_csv_out=FEAT_CSV_OUT,
 
 if __name__ == '__main__':
     print("running collect_features.py from command line")
+    feature_pipeline(ner_csv_in=NER_CSV_IN, feat_csv_out=FEAT_CSV_OUT,
+        marker_csv_out=MARKER_CSV_OUT, feat_full_csv_out=FEAT_FULL_CSV_OUT)

@@ -6,6 +6,7 @@ Main task: take MARKER_CSV input and create cleaned up list of named entities
 at csv_out (command line argument)
 '''
 
+import ast
 import pandas as pd
 import re
 import spacy
@@ -33,11 +34,19 @@ ENTS_TO_DROP = ['limes', 'st', 'rev', "jr", "sr", "john", "wm",
                   'americans', "sunday", "cultural tourism DC",
                   "the District after", "CulturalTourismDC.org",
                   "cultural tourism dc", "cultural tourism, dc",
-                  "culturaltourismdcorg", "goldentriangledccom"]
+                  "culturaltourismdcorg", "goldentriangledccom",
+                  'united states', 'washington dc', 'america', 'extra mile',
+                  'dc heritage tourism coalition', 'wwwgsagov', 'dc walking trail',
+                  'lift every voice', 'hub home', "hub, home, heart", "hub, home",
+                  "crossroads", "river farms", "urban towers", "city within",
+                  "the river view", "office of the",
+                  "official washington dc walking trail"]
+# todo ents associated with walking tours, for validation purposes
 
+# include custom-defined "CAT_HMDB" label for hmdb category-derived values
 LABELS_TO_USE = ['DATE', 'EVENT', 'FAC', 'GPE', 'LANGUAGE', 'LAW',
        'LOC', 'NORP', 'ORG', 'PERSON',
-       'PRODUCT', 'WORK_OF_ART']
+       'PRODUCT', 'WORK_OF_ART', 'CAT_HMDB']
 
 CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r"^the |^an |^a |^ ", ""), # starting articles or space
@@ -45,6 +54,11 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r"\’s$", ""), # ending possessive, curvy apostrophe
                      (r"\&", "and"), # no ampersands (does lead to BandO)
                      (r"( — | – | - )", " "), # dashes separated by space
+                     (r"á", "a"),
+                     (r"é", "e"),
+                     (r"í", "i"),
+                     (r"ó", "o"),
+                     (r"ú", "u"),
                      (r'^ill\.$', 'illinois'),
                      (r'^mass\.$', 'massachusetts'),
                      (r'^md\.$', 'maryland'),
@@ -64,7 +78,7 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r"-", " "),
                      (r"(?:about|around|late|early|middle|mid|from|c\.?|the year) (\d\d\d\d)", r"\1"), # approximate years
                      (r"(the end of the|the turn of the) ", ""),
-                     (r"(first world war|great war)", "world war i"),
+                     (r"(first world war|great war|world war one)", "world war i"),
                      (r"second world war", "world war ii"),
                      (r'^american revolution.+', 'american revolution'),
                      (r'^civil war.+', 'civil war'),
@@ -88,6 +102,7 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r'theatre', 'theater'), # americanize all theatres!
                      (r'^latin american$', 'latino'),
                      (r'^latinos$', 'latino'),
+                     (r'asian americans', 'asian american'),
                      (r'^african americans$', 'african american'),
                      (r'^afro american$', 'african american'),
                      (r'^black american$', 'african american'),
@@ -98,13 +113,36 @@ CLEAN_ENTITIES_RE = [(r"([^\w\d])+$|\_$", ""), # terminal non-word or non-digit
                      (r'^catholics$', 'catholic'),
                      (r'^jesuits$', 'jesuit'),
                      (r'^confederates$', 'confederate'),
-                     (r'^war of 18 12$', 'war of 1812')
+                     (r'^war of 18 12$', 'war of 1812'),
+                     (r'native americans', 'native american'), # normalize HMDB cats starts here
+                     (r'war, us revolutionary', 'revolutionary war'),
+                     (r'war, us civil', 'civil war'),
+                     (r'war, world ii', 'world war ii'),
+                     (r'war, world i', 'world war i'),
+                     (r'war, korean', 'korean war'),
+                     (r'war, 1st iraq and desert storm', 'desert storm'),
+                     (r'war, 2nd iraq', '2nd iraq war'),
+                     (r'iraqi freedom', '2nd iraq war'),
+                     (r'war, afghanistan', 'war in afghanistan'),
+                     (r'war, cold', 'cold war'),
+                     (r'war, french and indian', 'french and indian war'),
+                     (r'war, mexican american', 'mexican american war'),
+                     (r'war, spanish american', 'spanish american war'),
+                     (r'war, texas independence', 'texas revolution'),
+                     (r'war, vietnam', 'vietnam war'),
+                     (r'wars, non us', 'non us wars'),
+                     (r'wars, us indian', 'american indian wars'),
+                     (r'antebellum south, us', 'antebellum'),
+                     (r'arts, letters, music', 'arts'),
+                     (r'forts, castles', 'forts'),
+                     (r'hispanic americans', 'latino'),
                     ] 
 
-LABELS_DROP_STRINGS = [r' avenue$', r' ave$', r' streets?$', r' st$',
+LABELS_DROP_STRINGS = [r' avenues?$', r' ave$', r' streets?$', r' st$',
                        r' road$', ' rd$', ' lane$', ' ln$', r' terrace$',
                        r' (?:avenue|ave|st|street) (?:nw|sw|se|ne)$',
-                       r'^\d+ to \d+']
+                       r'^\d+ to \d+', r'heritage trail',
+                       r'battleground to community']
 
 def standardize_text(df, col_name):
     text_series = df[col_name].copy()
@@ -112,7 +150,7 @@ def standardize_text(df, col_name):
         text_series = text_series.str.replace(find_re, replace_str)
     return text_series
 
-def create_df_ent(df, nlp, remove_doc_dups=False):
+def create_df_ent(df, nlp, remove_doc_dups=False, add_cats=True):
     ents_labels = []
     ents_texts = []
     ents_markers = []
@@ -121,9 +159,19 @@ def create_df_ent(df, nlp, remove_doc_dups=False):
         print('removing duplicate entities from docs')
     else:
         print('preserving duplicate entities in docs')
+    if add_cats:
+        print('including hmdb categories')
     for i, row in enumerate(df.itertuples()):
         doc = nlp(row.text_clean)
         ent_text_label_tuples = [(ent.text, ent.label_) for ent in doc.ents]
+        if add_cats:
+            # value of row.categories is either float('nan') or string that
+            # will literal_eval() to a python list of strings
+            if type(row.categories)==str:
+                cats = ast.literal_eval(row.categories)
+                # need to clean up
+                cat_tuples = [(cat, 'CAT_HMDB') for cat in cats]
+                ent_text_label_tuples += cat_tuples
         if remove_doc_dups:
             # use set to remove duplicates. note that a set of (ent.text,
             # ent.label_) will remove dupes. set of just ents themselves will
@@ -132,7 +180,7 @@ def create_df_ent(df, nlp, remove_doc_dups=False):
             tuples_to_iterate = set(ent_text_label_tuples)
         else:
             tuples_to_iterate = ent_text_label_tuples
-        for (ent_text, ent_label) in set(ent_text_label_tuples):
+        for (ent_text, ent_label) in tuples_to_iterate:
             ents_labels.append(ent_label)
             ents_texts.append(ent_text)
             ents_markers.append(i)

@@ -34,7 +34,7 @@ CLUST_TOP_TERMS_OUT = "../data/190130-km-top-terms.csv"
 
 def calc_sim_matrix(feat_csv_in=FEAT_CSV_IN, sim_csv_out=SIM_CSV_OUT):
     df_all_counts = pd.read_csv(feat_csv_in, index_col='marker_id')
-    print(df_all_counts.head())
+    # print(df_all_counts.head())
 
     # ### Apply tf-idf to feature matrix
     # Already have used vectorizer, essentially, so just need to apply TfidfTransformer
@@ -63,6 +63,7 @@ def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT,
     # Vectorizer results are normalized, which makes KMeans behave as
     # spherical k-means for better results. Since LSA/SVD results are
     # not normalized, we have to redo the normalization.
+    print("calc_clusters(): TruncatedSVD with n_components: {}".format(n_components))
     svd = TruncatedSVD(n_components=n_components)
     normalizer = Normalizer(copy=False)
     lsa = make_pipeline(svd, normalizer)
@@ -70,16 +71,18 @@ def calc_clusters(feat_csv_in=FEAT_CSV_IN, clust_csv_out=CLUST_CSV_OUT,
     X = lsa.fit_transform(X)
 
     explained_variance = svd.explained_variance_ratio_.sum()
+    print("svd explained_variance: {}".format(explained_variance))
 
+    print("calc_clusters(): KMeans with n_clusters: {}".format(n_clusters))
     km = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=100, n_init=1,
-                verbose=True)
+                verbose=False)
 
     km.fit(X)
 
     print("Silhouette Coefficient: %0.3f"
           % metrics.silhouette_score(X, km.labels_, sample_size=1000))
     print()
-    print("Top terms per cluster:")
+    print("Terms closest to each cluster centroid:")
 
     # since did LSA, need to return cluster centers to original space
     original_space_centroids = svd.inverse_transform(km.cluster_centers_)
