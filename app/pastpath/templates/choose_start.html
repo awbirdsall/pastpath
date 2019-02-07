@@ -15,6 +15,30 @@
     <!-- Custom styles for this template -->
     <link href="../static/css/starter-template.css" rel="stylesheet">
 
+    <!-- lovingly handcrafted vanilla js for form validation -->
+    <script type="text/javascript">
+    function validateForm() {
+        console.log("running validateForm()");
+        var radius = document.forms["chooseStart"]["radius"].value;
+        if (radius == "") {
+            alert("Maximum distance must be provided");
+            return false;
+        }
+        var radios = document.forms["chooseStart"].elements["start_marker"];
+        //console.log(checkboxes);
+        var numChecked = 0;
+        for (var i=0, len=radios.length; i<len; i++) {
+            numChecked = numChecked + radios[i].checked;
+        }
+        console.log("numChecked:");
+        console.log(numChecked);
+        if (numChecked<1) {
+            alert("Starting marker must be selected");
+            return false;
+        }
+    } 
+    </script>
+
     <!-- leaflet -->
      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
       <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
@@ -80,7 +104,7 @@ map.fitBounds(allMarkers.getBounds());
 </script>
 
       <div class="container">
-          <form action="output", method="GET">
+        <form name="chooseStart" action="output" onsubmit="return validateForm()" method="GET">
 
         <table class="table table-hover">
             <tr>
@@ -115,7 +139,8 @@ map.fitBounds(allMarkers.getBounds());
             <button type="submit" class="btn btn-default btn-lg"><b>Get
                     route!</b></button>
         </div>
-          </form>
+
+        </form>
 
       </div>
 

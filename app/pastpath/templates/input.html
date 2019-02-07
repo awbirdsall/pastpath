@@ -15,12 +15,33 @@
     <!-- Custom styles for this template -->
     <link href="../static/css/starter-template.css" rel="stylesheet">
 
-    <!-- jQuery, etc -->
-    <script src="../static/js/jquery-3.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="../static/js/bootstrap.min.js"></script>
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
     <script src="../static/js/popper.js"></script>
 
+    <!-- lovingly handcrafted vanilla js for form validation -->
+    <script type="text/javascript">
+    function validateForm() {
+            console.log("running validateForm()");
+            var lat = document.forms["inputForm"]["lat"].value;
+            var lon = document.forms["inputForm"]["lon"].value;
+            if ((lat == "")||(lon == "")) {
+                alert("Coordinates must be provided; click on map to set");
+                return false;
+            }
+        var checkboxes = document.forms["inputForm"].elements["cluster"];
+        //console.log(checkboxes);
+        var numChecked = 0;
+        for (var i=0, len=checkboxes.length; i<len; i++) {
+            numChecked = numChecked + checkboxes[i].checked;
+        }
+        console.log("numChecked:");
+        console.log(numChecked);
+        if (numChecked<1) {
+            alert("At least one checkbox must be selected");
+            return false;
+        }
+    } 
+    </script>
 
     <!-- leaflet -->
      <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
@@ -52,22 +73,19 @@
         <p class="lead">Where are you starting and what are you interested in? We'll find some options near you.</p>
       </div>
 
+      <div class="container">
+          <p class="lead"><b>1st, choose a starting location</b> on the map:</p>
+      </div>
+
 <div id="map" style="height: 400px;"></div>
 <script type="text/javascript">
-  // The first parameter are the coordinates of the center of the map
-  // The second parameter is the zoom level
     var dc_center = [38.8977, -77.033]
     var map = L.map('map').setView(dc_center, 14);
   
-  // {s}, {z}, {x} and {y} are placeholders for map tiles
-  // {x} and {y} are the x/y of where you are on the map
-  // {z} is the zoom level
-  // {s} is the subdomain of cartodb
     var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
   });
 
-  // Now add the layer onto the map
   map.addLayer(layer);
 
   // use mouse click on map to id user location
@@ -75,7 +93,6 @@
 	function onMapClick(e) {
 		popup
 			.setLatLng(e.latlng)
-		//	.setContent("You clicked the map at " + e.latlng.toString())
 			.addTo(map);
         document.getElementById('latInput').value = e.latlng.lat;
         document.getElementById('lonInput').value = e.latlng.lng;
@@ -84,7 +101,7 @@
 
 </script>
 
-    <form action="/choose_start" method="GET">
+    <form name="inputForm" onsubmit="return validateForm()" action="/choose_start" method="GET">
     <div class="row">
       <section class="col col-3">
         <label class="input">
@@ -99,36 +116,36 @@
     </div>
 
     <div class="container">
-        <p class="lead">Select which of the following subjects you might want
-        as a starting point:</p>
+        <p class="lead">
+        <b>2nd, choose one or more</b> of the following subject areas you're
+        interested in:
+        </p>
         <input type="checkbox" name="cluster" value="0" id="c0">
-            <label for="c0">Civil War, 1860s, Abraham Lincoln, ...</label><br>
+            <label for="c0">1810s, War of 1812, British, ...</label><br>
         <input type="checkbox" name="cluster" value="1" id="c1">
-            <label for="c1">Air &amp; Space, Earth, Mercury</label><br>
+            <label for="c1">Politics, Notable Persons, Notable Buildings, ...</label><br>
         <input type="checkbox" name="cluster" value="2" id="c2">
-            <label for="c2">African American, Civil Rights, Howard University,
-            ...</label><br>
+            <label for="c2">Churches and Religion, 1970s, African American, ...</label><br>
         <input type="checkbox" name="cluster" value="3" id="c3">
-            <label for="c3">Cultural Tourism DC, Planning and Economic
-                Development, DC Commission...</label><br>
+            <label for="c3">Waterways and Vessels, Air and Space, Military, ...</label><br>
         <input type="checkbox" name="cluster" value="4" id="c4">
-            <label for="c4">Notable Persons, Patriots &amp; Patriotism,
-                Heroes...</label><br>
+            <label for="c4">Science and Medicine, George Washington
+                University, Education, ...
+                </label><br>
         <input type="checkbox" name="cluster" value="5" id="c5">
-            <label for="c5">Environment, Waterways &amp; Vessels, Animals, ...</label><br>
+            <label for="c5">Environment, Animals, National Zoo, ...</label><br>
         <input type="checkbox" name="cluster" value="6" id="c6">
-            <label for="c6">Notable Buildings, National Register of Historic
-                Places, National Historic Landmark, ...</label><br>
+            <label for="c6">DC Commission Arts and Humanities, Planning and
+                Economic Development ...</label><br>
         <input type="checkbox" name="cluster" value="7" id="c7">
-            <label for="c7">1810s, War of 1812, British, ...</label><br>
+            <label for="c7">Industry and Commerce, 1960s, 1900s, ...</label><br>
         <input type="checkbox" name="cluster" value="8" id="c8">
-            <label for="c8">Industry &amp; Commerce, 1990s, Politics, ...</label><br>
+            <label for="c8">Civil War, 1860s, Abraham Lincoln, ...</label><br>
         <input type="checkbox" name="cluster" value="9" id="c9">
-            <label for="c9">Churches &amp; Religion, African American, 1870s,
-                ...</label><br>
+            <label for="c9">African American, Howard University, Civil Rights, ...</label><br>
     </div>
 
-        <div align="center">
+        <div class="container" align="center">
             <button type="submit" class="btn btn-default btn-lg"><b>Find
                     nearby markers!</b></button>
         </div>
@@ -139,6 +156,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../static/js/jquery-3.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
   
-
 </body></html>
