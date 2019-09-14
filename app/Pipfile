@@ -1,0 +1,20 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+flask = "*"
+gunicorn = "*"
+numpy = "*"
+pandas = "*"
+psycopg2 = "*"
+sqlalchemy = "*"
+sqlalchemy-utils = "*"
+openrouteservice = "==1.1.0"
+ortools = "==6.10.6025"
+
+[requires]
+python_version = "3.7"
