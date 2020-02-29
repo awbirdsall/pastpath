@@ -10,14 +10,12 @@ The code for a web app is in `app/`. The app is built in Flask and queries a Pos
 
 ### Deployment
 
-Install python, nginx, and miniconda (last has interactive prompts):
+Install python and nginx
 
 ```bash
 $ sudo apt-get update
 $ sudo apt-get install -y python
 $ sudo apt-get install -y nginx
-$ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-$ bash Miniconda3-latest-Linux-x86_64.sh
 $ source ~/.bashrc
 ```
 
@@ -27,7 +25,7 @@ Clone project from git
 $ git clone https://github.com/awbirdsall/pastpath.git
 ```
 
-TODO: use pipenv to install pinned versions of required packages, as defined in Pipfile.lock.
+Use pipenv to install pinned versions of required packages, as defined in Pipfile.lock.
 
 ```bash
 $ pip install pipenv
