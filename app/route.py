@@ -1,9 +1,11 @@
 '''pastpath.route : functions associated with creating routes
 '''
-from . import get_instance_settings
+from random import shuffle
+
 from openrouteservice import client, directions, distance_matrix, places
 from ortools.constraint_solver import pywrapcp, routing_enums_pb2
-from random import shuffle
+
+from settings import get_instance_settings
 
 def calc_distance_matrix(marker_coords):
     ors_clnt = client.Client(key=get_instance_settings().ors_key)

@@ -1,16 +1,19 @@
 import ast
 from typing import List
 
-from fastapi import Request, Query
+from fastapi import APIRouter, Request, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from pastpath import app, get_app_settings, get_instance_settings
-from pastpath.markers import get_closest_starting_markers, get_top_locations_close
-from pastpath.route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 import pandas as pd
 import psycopg2
+
+from markers import get_closest_starting_markers, get_top_locations_close
+from route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
+from settings import get_app_settings, get_instance_settings
+
+router = APIRouter()
 
 # connect to postgres
 db = create_engine('postgres://%s%s/%s'%(get_instance_settings().sql_user,
@@ -23,15 +26,15 @@ con = psycopg2.connect(
         password=get_instance_settings().sql_key
         )
 
-templates = Jinja2Templates(directory='pastpath/templates')
+templates = Jinja2Templates(directory='templates')
 
-@app.get('/')
-@app.get('/index')
-@app.get('/input_loc')
+@router.get('/')
+@router.get('/index')
+@router.get('/input_loc')
 async def input_loc(request: Request):
     return templates.TemplateResponse("input.html", context={"request": request})
 
-@app.get('/choose_start')
+@router.get('/choose_start')
 async def choose_start(request: Request, lat: float, lon: float, cluster: List[str] = Query(None)):
     # start is limited by choice of clusters and distance from location
     clusters = cluster
@@ -63,7 +66,7 @@ async def choose_start(request: Request, lat: float, lon: float, cluster: List[s
     return templates.TemplateResponse("choose_start.html",
             context={'request': request, 'markers': markers, 'map_center': map_center})
 
-@app.get('/output')
+@router.get('/output')
 async def get_route(request: Request, start_marker: int, radius: float):
     radius = radius * 1.61 # convert miles to km
 
