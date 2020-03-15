@@ -7,3 +7,8 @@ openrouteservice==1.1.0
 ortools==6.10.6025
 numpy
 pandas
+sqlalchemy
+sqlalchemy_utils
+psycopg2-binary
+pydantic[dotenv]
+Cerberus

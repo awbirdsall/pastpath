@@ -1,3 +1,3 @@
-HOST = 'localhost'
-DB_NAME = 'marker_db'
-PORT = '5432'
+host=localhost
+db_name=marker_db
+port=5432
