@@ -1,41 +1,52 @@
 import ast
-from flask import render_template, request
-from pastpath import app
-from pastpath.markers import get_closest_starting_markers, get_top_locations_close
-from pastpath.route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
+from typing import List
+
+from fastapi import APIRouter, Request, Query
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
 import pandas as pd
 import psycopg2
 
+from markers import get_closest_starting_markers, get_top_locations_close
+from route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
+from settings import get_app_settings, get_instance_settings
+
+router = APIRouter()
+
 # connect to postgres
-db = create_engine('postgres://%s%s/%s'%(app.config['SQL_USER'],
-                                         app.config['HOST'],
-                                         app.config['DB_NAME']))
-con = psycopg2.connect(database=app.config['DB_NAME'],
-        user=app.config['SQL_USER'],
-        host=app.config['HOST'],
-        password=app.config['SQL_KEY'])
+db = create_engine('postgres://%s%s/%s'%(get_instance_settings().sql_user,
+                                         get_app_settings().host,
+                                         get_app_settings().db_name))
+con = psycopg2.connect(
+        database=get_app_settings().db_name,
+        user=get_instance_settings().sql_user,
+        host=get_app_settings().host,
+        password=get_instance_settings().sql_key
+        )
 
-@app.route('/')
-@app.route('/index')
-@app.route('/input_loc')
-def input_loc():
-    return render_template("input.html")
+templates = Jinja2Templates(directory='templates')
 
-@app.route('/choose_start')
-def choose_start():
+@router.get('/')
+@router.get('/index')
+@router.get('/input_loc')
+async def input_loc(request: Request):
+    return templates.TemplateResponse("input.html", context={"request": request})
+
+@router.get('/choose_start')
+async def choose_start(request: Request, lat: float, lon: float, cluster: List[str] = Query(None)):
     # start is limited by choice of clusters and distance from location
-    lat = float(request.args.get('lat'))
-    lon = float(request.args.get('lon'))
-    clusters = list(request.args.getlist("cluster"))
+    clusters = cluster
     print("clusters: {}".format(clusters))
+
     # get places in selected clusters
     clusters_str = ", ".join(clusters)
     query = "SELECT marker_id, title, lat, lon, text, categories, url, text_clean, images FROM hmdb_data_table WHERE km_label in ({});".format(clusters_str)
     print("choose_start query: {}".format(query))
     df_markers = pd.read_sql_query(query, con)
     print(df_markers['text_clean'].head())
+
     # calculate N closest markers
     # returns rows of df_markers
     markers = get_closest_starting_markers(lat, lon, df_markers, 7)
@@ -43,6 +54,7 @@ def choose_start():
     print(markers)
     print(markers.columns)
     print(markers['text_clean'].head())
+
     # add img_src
     img_urls = [x[0] for x in markers['images'].apply(ast.literal_eval)]
     img_ids = [x.split("/")[-1][5:-5].zfill(6) for x in img_urls]
@@ -50,13 +62,13 @@ def choose_start():
     img_srcs = ["static/img/{}_{}_small.jpg".format(x,y) for (x,y) in zip(marker_id_strs, img_ids)]
     markers['img_src'] = img_srcs
     map_center = [markers.lat.mean(), markers.lon.mean()]
-    return render_template("choose_start.html", markers=markers,
-            map_center=map_center)
 
-@app.route('/output')
-def get_route():
-    start_marker = int(request.args.get('start_marker'))
-    radius = float(request.args.get("radius"))*1.61 # convert miles to km
+    return templates.TemplateResponse("choose_start.html",
+            context={'request': request, 'markers': markers, 'map_center': map_center})
+
+@router.get('/output')
+async def get_route(request: Request, start_marker: int, radius: float):
+    radius = radius * 1.61 # convert miles to km
 
     # get places dataframe
     markers_query = "SELECT marker_id, title, lat, lon, text, text_clean, images, categories, url FROM hmdb_data_table WHERE cty='washington_dc';"
@@ -121,7 +133,8 @@ def get_route():
     marker_id_strs = [str(x).zfill(6) for x in markers['marker_id']]
     img_srcs = ["static/img/{}_{}_small.jpg".format(x,y) for (x,y) in zip(marker_id_strs, img_ids)]
     markers['img_src'] = img_srcs
-    return render_template("output.html", markers=markers,
-            map_center=map_center, route_polylines=route_polylines,
-            marker_order=marker_order, route_str=route_str,
-            optimal_duration=optimal_duration)
+    return templates.TemplateResponse("output.html",
+            context={'request': request, 'markers': markers,
+                'map_center': map_center, 'route_polylines': route_polylines,
+                'marker_order': marker_order, 'route_str': route_str,
+                'optimal_duration': optimal_duration})

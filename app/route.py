@@ -1,12 +1,14 @@
 '''pastpath.route : functions associated with creating routes
 '''
-from flask import current_app as app
-from openrouteservice import client, directions, distance_matrix, places
-from ortools.constraint_solver import pywrapcp, routing_enums_pb2
 from random import shuffle
 
+from openrouteservice import client, directions, distance_matrix, places
+from ortools.constraint_solver import pywrapcp, routing_enums_pb2
+
+from settings import get_instance_settings
+
 def calc_distance_matrix(marker_coords):
-    ors_clnt = client.Client(key=app.config['ORS_KEY'])
+    ors_clnt = client.Client(key=get_instance_settings().ors_key)
 
     request = {'locations': marker_coords,
            'profile': 'foot-walking',
@@ -52,7 +54,7 @@ def optimal_route_from_matrix(marker_coords, marker_names, dist_matrix, start=0)
     return optimal_coords, marker_order, route_str
 
 def directions_route_duration(route_coords):
-    ors_clnt = client.Client(key=app.config['ORS_KEY'])
+    ors_clnt = client.Client(key=get_instance_settings().ors_key)
     request = {'coordinates': route_coords,
                'profile': 'foot-walking',
                'geometry': 'true',

@@ -15,19 +15,18 @@
     <!-- Custom styles for this template -->
     <link href="../static/css/starter-template.css" rel="stylesheet">
 
-    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
     <script src="../static/js/popper.js"></script>
 
     <!-- lovingly handcrafted vanilla js for form validation -->
     <script type="text/javascript">
     function validateForm() {
-            console.log("running validateForm()");
-            var lat = document.forms["inputForm"]["lat"].value;
-            var lon = document.forms["inputForm"]["lon"].value;
-            if ((lat == "")||(lon == "")) {
-                alert("Coordinates must be provided; click on map to set");
-                return false;
-            }
+        console.log("running validateForm()");
+        var lat = document.forms["inputForm"]["lat"].value;
+        var lon = document.forms["inputForm"]["lon"].value;
+        if ((lat == "")||(lon == "")) {
+            alert("Coordinates must be provided; click on map to set");
+            return false;
+        }
         var checkboxes = document.forms["inputForm"].elements["cluster"];
         //console.log(checkboxes);
         var numChecked = 0;

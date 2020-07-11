@@ -6,9 +6,24 @@ This service uses natural language processing to determine similarities between 
 
 ## Web app
 
-The code for a web app is in `app/`. The app is built in Flask and queries a PostgreSQL database containing historic marker information and the results of NLP analysis. The app has been deployed to an AWS EC2 instance using Gunicorn and Nginx and is hosted at <http://pastpath.tours>.
+The code for a web app is in `app/`. The app is built using FastAPI and queries a PostgreSQL database containing historic marker information and the results of NLP analysis. The app has been deployed to an AWS EC2 instance using Gunicorn and Nginx and is hosted at <http://pastpath.tours>.
+
+### Local testing
+
+The app has been Dockerized using an image built on top of `tiangolo/uvicorn-gunicorn-fastapi:python3.7`.
+
+To test the image locally:
+
+```bash
+$ docker build -t pastpath .
+$ docker run --network=host pastpath
+```
+
+This serves the app at `localhost:80`. The flag `--network=host` is used to make it easy not just to connect to the served app but also for the app to connect to a locally running postgresql database instance.
 
 ### Deployment
+
+TODO update to run out of Docker container
 
 Install python and nginx
 
@@ -72,12 +87,12 @@ $ python pipeline.py --db
 Add pastpath/app/instance/config.py with values for that:
 
 ```
-SQL_USER = USER_NAME_HERE
-SQL_KEY = SQL_KEY_HERE
-ORS_KEY = ORS_KEY_HERE
+sql_user=USER_NAME_HERE
+sql_key=SQL_KEY_HERE
+ors_key=ORS_KEY_HERE
 ```
 
-Transfer static image directory to app/histmark/static/img.
+Transfer static image directory to app/static/img.
 
 Start nginx and configure
 
@@ -104,7 +119,7 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
     location /static {
-        alias /home/ubuntu/pastpath/app/pastpath/static;
+        alias /home/ubuntu/pastpath/app/static;
     }
 }
 ```
@@ -119,12 +134,12 @@ Run gunicorn as background process
 
 ```bash
 $ cd ~/pastpath/app
-$ gunicorn pastpath:app -D
+$ gunicorn -k uvicorn.workers.UvicornWorker main:app -D
 ```
 
 ## Analysis scripts
 
-Much of the NLP analysis is performed ahead of time, before the user interacts with the web app. The folder `scripts/` contains scripts used to take input data from the historic marker database (<https://www.hmdb.org>), process it, and load it to a SQL database to be used by the Flask app in `app/`. The entire pipeline of scripts from input to output can be run from the command line using `scripts/pipeline.py`, with command-line flags to control which portions of the pipeline are run. In brief, the four steps and associated command-line flags are:
+Much of the NLP analysis is performed ahead of time, before the user interacts with the web app. The folder `scripts/` contains scripts used to take input data from the historic marker database (<https://www.hmdb.org>), process it, and load it to a SQL database to be used by the FastAPI app in `app/`. The entire pipeline of scripts from input to output can be run from the command line using `scripts/pipeline.py`, with command-line flags to control which portions of the pipeline are run. In brief, the four steps and associated command-line flags are:
 
 - `--ner`: Take a csv file of historic markers, pre-process the historic marker texts, perform named entity recognition using Spacy, and perform manual cleaning of the resulting named entities. Output csv of which named entities are in each historic marker text. (code in `scripts/ner.py`)
 - `--cf`: Collect features from csv files of named entities, Wikipedia page categories (previously collected with `/scripts/wikitext.py`), decade features (previously collected from date entities), and HMDB categories. Merge into single DataFrame which binary encodes each marker for the presence or absence of each feature, and filter out very infrequently (or frequently) appearing features. Output to csv. (code in `scripts/collect_features.py`)
@@ -133,7 +148,7 @@ Much of the NLP analysis is performed ahead of time, before the user interacts w
 
 ## Web app dependencies
 
-- `flask`
+- `fastapi`
 - `numpy`
 - `openrouteservice`
 - `ortools`
