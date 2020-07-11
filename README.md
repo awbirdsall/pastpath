@@ -21,7 +21,15 @@ $ docker run --network=host pastpath
 
 This serves the app at `localhost:80`. The flag `--network=host` is used to make it easy not just to connect to the served app but also for the app to connect to a locally running postgresql database instance.
 
+TODO for deployment don't just use network=host, be more specific -- see below on postgresql
+
 ### Deployment
+
+The entire application runs behind nginx as a proxy server, which quickly handles requests from the internet and is configured to serve the static files. Behind nginx, Gunicorn is used as a process manager for the app, and is run using Uvicorn workers. Uvicorn uses the asynchronous ASGI interface used by FastAPI.
+
+The app runs out of a Docker container built on top of the `tiangolo/uvicorn-gunicorn-fastapi` image.
+
+The PostgreSQL database runs directly on the EC2 instance and is configured to allow connections from the Docker container running the app.
 
 TODO update to run out of Docker container
 
@@ -59,6 +67,17 @@ Set password for user (postgres default username)
 ```bash
 $ sudo passwd postgres
 ```
+
+TODO allow Docker container to connect to postgres
+- https://lchsk.com/how-to-connect-to-a-host-postgres-database-from-a-docker-container.html
+
+NB it looks like psycopg2 already performs hashing https://stackoverflow.com/questions/6782026/can-i-use-md5-authentication-with-psycopg2
+
+NB it's normal to set listen_addresses to * https://dba.stackexchange.com/a/48373 but maybe for Docker IP that can be set explicitly https://dba.stackexchange.com/a/225079 see also https://dba.stackexchange.com/questions/220931/can-listen-addresses-system-configuration-setting-in-postgres-stop-pre-authent
+
+Can use ifconfig or ip a command to determine the ip address for the docker service
+
+https://stackoverflow.com/a/31249288
 
 Populate the database on the EC2 instance over ssh tunnel:
 
@@ -103,7 +122,7 @@ $ sudo touch /etc/nginx/sites-available/application
 $ sudo ln -s /etc/nginx/sites-available/application /etc/nginx/sites-enabled/application
 ```
 
-Write configuration file for application:
+Write configuration file for application (this will be included as part of the `nginx.conf`):
 
 ```bash
 $ sudo vim /etc/nginx/sites-enabled/application
@@ -113,16 +132,40 @@ Contents should be:
 
 ```
 server {
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-    location /static {
-        alias /home/ubuntu/pastpath/app/static;
-    }
+  listen 80;
+  client_max_body_size 4G;
+
+  server_name pastpath.tours www.pastpath.tours;
+
+  location / {
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_redirect off;
+    proxy_buffering off;
+    proxy_pass http://uvicorn;
+  }
+
+  location /static {
+    alias /home/ubuntu/pastpath/app/pastpath/static;
+  }
+}
+
+upstream uvicorn {
+  server unix:/tmp/uvicorn.sock;
+}
+
+server {
+  listen 80;
+  server_name "";
+  return 444;
 }
 ```
+
+This is adapted from https://www.uvicorn.org/deployment/ and also includes a server block to disconnect when the host is not provided (i.e., attempted to connect directly to IP).
+
+TODO base on https://docs.gunicorn.org/en/stable/deploy.html because using uvicornworker in gunicorn, not uvicorn directly.
 
 Restart nginx
 
