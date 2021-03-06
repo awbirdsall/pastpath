@@ -1,7 +1,7 @@
-app/instance/
+web/app/instance/
 *.un~
 __pycache__/
 *.swp
 *.pyc
 scripts/config.py
-app/static/img/
+web/app/static/img/
