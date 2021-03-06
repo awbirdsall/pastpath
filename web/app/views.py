@@ -9,9 +9,9 @@ from sqlalchemy_utils import database_exists, create_database
 import pandas as pd
 import psycopg2
 
-from markers import get_closest_starting_markers, get_top_locations_close
-from route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
-from settings import get_app_settings, get_instance_settings
+from app.markers import get_closest_starting_markers, get_top_locations_close
+from app.route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
+from app.settings import get_app_settings, get_instance_settings
 
 router = APIRouter()
 

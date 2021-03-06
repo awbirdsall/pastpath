@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn 
 
-import views
+from app import views
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
