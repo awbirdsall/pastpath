@@ -23,10 +23,11 @@ con = psycopg2.connect(
         database=get_app_settings().db_name,
         user=get_instance_settings().sql_user,
         host=get_app_settings().host,
+        port=get_app_settings().port,
         password=get_instance_settings().sql_key
         )
 
-templates = Jinja2Templates(directory='templates')
+templates = Jinja2Templates(directory='app/templates')
 
 @router.get('/')
 @router.get('/index')
