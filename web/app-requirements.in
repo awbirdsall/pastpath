@@ -3,7 +3,7 @@ fastapi~=0.52
 jinja2
 aiofiles
 gunicorn
-openrouteservice==1.1.0
+openrouteservice~=2.3
 ortools==6.10.6025
 numpy
 pandas
