@@ -6,7 +6,7 @@ This service uses natural language processing to determine similarities between 
 
 ## Web app
 
-The code for a web app is in `app/`. The app is built using FastAPI and queries a PostgreSQL database containing historic marker information and the results of NLP analysis. The app has been deployed to an AWS EC2 instance using Gunicorn and Nginx and is hosted at <http://pastpath.tours>.
+The app is built using FastAPI and queries a PostgreSQL database containing historic marker information and the results of NLP analysis. The app has been deployed to an AWS EC2 instance using Gunicorn and Nginx and is hosted at <http://pastpath.tours>.
 
 ### Local testing
 
@@ -27,89 +27,41 @@ TODO for deployment don't just use network=host, be more specific -- see below o
 
 The entire application runs behind nginx as a proxy server, which quickly handles requests from the internet and is configured to serve the static files. Behind nginx, Gunicorn is used as a process manager for the app, and is run using Uvicorn workers. Uvicorn uses the asynchronous ASGI interface used by FastAPI.
 
-The app runs out of a Docker container built on top of the `tiangolo/uvicorn-gunicorn-fastapi` image.
+The app runs out of a Docker container built on top of the `tiangolo/uvicorn-gunicorn-fastapi` image. The PostgreSQL database runs in a separate Docker container.
 
-The PostgreSQL database runs directly on the EC2 instance and is configured to allow connections from the Docker container running the app.
+#### Start and seed database
 
-TODO update to run out of Docker container
+Assume existing database already exists and seed script exists (e.g. dumped to file with `$ pg_dump -d <db_name> > /path/to/seed/seed.sql`).
 
-Install python and nginx
+```bash
+$ docker-compose up -d db
+$ docker-compose run -v /path/to/seed:/backup/ db bash
+```
+
+Within database container, seed database:
+
+```bash
+$ psql -U <username> -h db.pastpath_app -p <port> -f /backup/seed.sql
+$ exit
+```
+
+#### Start web container
+
+```bash
+$ docker-compose up -d web
+```
+
+Configured to serve at port 8080.
+
+#### Start nginx
+
+Install nginx
 
 ```bash
 $ sudo apt-get update
-$ sudo apt-get install -y python
 $ sudo apt-get install -y nginx
-$ source ~/.bashrc
 ```
 
-Clone project from git
-
-```bash
-$ git clone https://github.com/awbirdsall/pastpath.git
-```
-
-Use pipenv to install pinned versions of required packages, as defined in Pipfile.lock.
-
-```bash
-$ pip install pipenv
-$ pipenv install --deploy --ignore-pipfile
-```
-
-Set up postgresql
-
-```bash
-$ sudo apt install postgresql postgresql-contrib
-$ sudo service postgresql start
-```
-
-Set password for user (postgres default username)
-
-```bash
-$ sudo passwd postgres
-```
-
-TODO allow Docker container to connect to postgres
-- https://lchsk.com/how-to-connect-to-a-host-postgres-database-from-a-docker-container.html
-
-NB it looks like psycopg2 already performs hashing https://stackoverflow.com/questions/6782026/can-i-use-md5-authentication-with-psycopg2
-
-NB it's normal to set listen_addresses to * https://dba.stackexchange.com/a/48373 but maybe for Docker IP that can be set explicitly https://dba.stackexchange.com/a/225079 see also https://dba.stackexchange.com/questions/220931/can-listen-addresses-system-configuration-setting-in-postgres-stop-pre-authent
-
-Can use ifconfig or ip a command to determine the ip address for the docker service
-
-https://stackoverflow.com/a/31249288
-
-Populate the database on the EC2 instance over ssh tunnel:
-
-1) on remote DB, command 
-
-```sql
-ALTER USER my-db-user WITH ENCRYPTED PASSWORD 'my-db-password';
-```
-
-2) make ssh tunnel from arbitrary local client port to postgresql port 5432: 
-
-`$ ssh -L 63333:localhost:5432 defaultuser@remoteaddress`
-
-3) use tunnel port to connect to db as my-db-user
-
-```bash
-$ psql -h localhost -p 63333 -U postgres
-```
-
-4) run pipeline script with `DB_LOC = 'production'` to write to production database. Only `--db` flag is required if all files already have been created.
-
-```bash
-$ python pipeline.py --db
-```
-
-Add pastpath/app/instance/config.py with values for that:
-
-```
-sql_user=USER_NAME_HERE
-sql_key=SQL_KEY_HERE
-ors_key=ORS_KEY_HERE
-```
 
 Transfer static image directory to app/static/img.
 
@@ -173,13 +125,6 @@ Restart nginx
 $ sudo /etc/init.d/nginx restart
 ```
 
-Run gunicorn as background process
-
-```bash
-$ cd ~/pastpath/app
-$ gunicorn -k uvicorn.workers.UvicornWorker main:app -D
-```
-
 ## Analysis scripts
 
 Much of the NLP analysis is performed ahead of time, before the user interacts with the web app. The folder `scripts/` contains scripts used to take input data from the historic marker database (<https://www.hmdb.org>), process it, and load it to a SQL database to be used by the FastAPI app in `app/`. The entire pipeline of scripts from input to output can be run from the command line using `scripts/pipeline.py`, with command-line flags to control which portions of the pipeline are run. In brief, the four steps and associated command-line flags are:
@@ -191,14 +136,7 @@ Much of the NLP analysis is performed ahead of time, before the user interacts w
 
 ## Web app dependencies
 
-- `fastapi`
-- `numpy`
-- `openrouteservice`
-- `ortools`
-- `pandas`
-- `psycopg2`
-- `sqlalchemy`
-- `sqlalchemy_utils`
+See `web/app-requirements.in` and `web/app-requirements.txt` (generated with pip-tools).
 
 ## Analysis script dependencies
 

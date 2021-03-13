@@ -8,7 +8,7 @@ from pydantic import BaseSettings, Field
 class AppSettings(BaseSettings):
     # host name resolved using docker-compose network name
     host: str = "db.pastpath_app"
-    db_name: str = "db"
+    db_name: str = "postgres"
     port: int = Field(..., env="PASTPATH_DB_PORT")
 
 
