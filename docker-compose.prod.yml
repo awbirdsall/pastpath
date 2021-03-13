@@ -9,7 +9,7 @@ services:
       - "443:443"
     # env_file: .env
     volumes:
-      - static_volume:/app/app/static
+      - ~/insight/pastpath/web/app/static:/app/app/static
     networks:
       app:
     depends_on:
@@ -23,7 +23,7 @@ services:
       - ./local.env
     volumes:
       - ./web:/app
-      - static_volume:/app/app/static
+      - ~/insight/pastpath/web/app/static:/app/app/static
     depends_on:
       - db
     networks:
@@ -42,5 +42,3 @@ services:
       app:
 networks:
   app:
-volumes:
-  static_volume:
