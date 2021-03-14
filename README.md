@@ -15,15 +15,27 @@ The app has been Dockerized using an image built on top of `tiangolo/uvicorn-gun
 To test the image locally:
 
 ```bash
-$ docker build -t pastpath .
-$ docker run --network=host pastpath
+$ docker-compose up
 ```
 
-This serves the app at `localhost:80`. The flag `--network=host` is used to make it easy not just to connect to the served app but also for the app to connect to a locally running postgresql database instance.
+This starts up the database and app and makes it accessible at `localhost:8080`. The `web` container running the app is connected to the `db` postgres container within a `pastpath_app` network via port 5436, which is only accessible via the network.
 
-TODO for deployment don't just use network=host, be more specific -- see below on postgresql
+Local docker-compose:
+
+- serves app at localhost:8080
+- mounts local volumes with both app and database data
+- uses `.env` and `.env.db` env_files
 
 ### Deployment
+
+Deployment is defined in `docker-compose.prod.yml` inspired by [this](https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/#production-dockerfile).
+
+Production docker-compose:
+
+- adds container running nginx that publishes to ports 80 and 443
+- uses a static_volume attached to both the nginx and web services containing the static files
+- uses `.env.prod` and `.env.prod.db` env_files
+- uses a postgres_data volume attached to the db service
 
 The entire application runs behind nginx as a proxy server, which quickly handles requests from the internet and is configured to serve the static files. Behind nginx, Gunicorn is used as a process manager for the app, and is run using Uvicorn workers. Uvicorn uses the asynchronous ASGI interface used by FastAPI.
 
