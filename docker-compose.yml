@@ -5,9 +5,6 @@ services:
     build: ./web
     ports:
       - 8080:8080
-    environment:
-      - PASTPATH_DB_PORT=5436
-      - PORT=8080
     env_file:
       - ./.env
     volumes:
@@ -15,7 +12,7 @@ services:
     depends_on:
       - db
     networks:
-      app:
+      app_local:
   db:
     image: postgres:12.6-alpine
     restart: always
@@ -25,7 +22,7 @@ services:
       - ./.env.db
     command: -p 5436
     networks:
-      app:
+      app_local:
 
 networks:
-  app:
+  app_local:

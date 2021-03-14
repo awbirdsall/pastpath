@@ -18,7 +18,7 @@ To test the image locally:
 $ docker-compose up
 ```
 
-This starts up the database and app and makes it accessible at `localhost:8080`. The `web` container running the app is connected to the `db` postgres container within a `pastpath_app` network via port 5436, which is only accessible via the network.
+This starts up the database and app and makes it accessible at `localhost:8080`. The `web` container running the app is connected to the `db` postgres container within a `pastpath_app_local` network via port 5436, which is only accessible via the network.
 
 Local docker-compose:
 
@@ -28,6 +28,16 @@ Local docker-compose:
 
 ### Deployment
 
+#### Overview
+
+1) Add static files not maintained in repo (web/app/static/img)
+2) Seed database
+3) Bring up db: `docker-compose -f docker-compose.prod.yml up -d db`
+3) Bring up web: `docker-compose -f docker-compose.prod.yml up -d web`
+3) Bring up nginx: `docker-compose -f docker-compose.prod.yml up -d nginx`
+
+#### Details
+
 Deployment is defined in `docker-compose.prod.yml` inspired by [this](https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/#production-dockerfile).
 
 Production docker-compose:
@@ -36,6 +46,7 @@ Production docker-compose:
 - uses a static_volume attached to both the nginx and web services containing the static files
 - uses `.env.prod` and `.env.prod.db` env_files
 - uses a postgres_data volume attached to the db service
+- containers reside in `pastpath_app` network
 
 The entire application runs behind nginx as a proxy server, which quickly handles requests from the internet and is configured to serve the static files. Behind nginx, Gunicorn is used as a process manager for the app, and is run using Uvicorn workers. Uvicorn uses the asynchronous ASGI interface used by FastAPI.
 
@@ -67,75 +78,7 @@ Configured to serve at port 8080.
 
 #### Start nginx
 
-Install nginx
-
-```bash
-$ sudo apt-get update
-$ sudo apt-get install -y nginx
-```
-
-
-Transfer static image directory to app/static/img.
-
-Start nginx and configure
-
-```bash
-$ sudo /etc/init.d/nginx start
-$ sudo rm /etc/nginx/sites-enabled/default
-$ sudo touch /etc/nginx/sites-available/application
-$ sudo ln -s /etc/nginx/sites-available/application /etc/nginx/sites-enabled/application
-```
-
-Write configuration file for application (this will be included as part of the `nginx.conf`):
-
-```bash
-$ sudo vim /etc/nginx/sites-enabled/application
-```
-
-Contents should be:
-
-```
-server {
-  listen 80;
-  client_max_body_size 4G;
-
-  server_name pastpath.tours www.pastpath.tours;
-
-  location / {
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_redirect off;
-    proxy_buffering off;
-    proxy_pass http://uvicorn;
-  }
-
-  location /static {
-    alias /home/ubuntu/pastpath/app/pastpath/static;
-  }
-}
-
-upstream uvicorn {
-  server unix:/tmp/uvicorn.sock;
-}
-
-server {
-  listen 80;
-  server_name "";
-  return 444;
-}
-```
-
-This is adapted from https://www.uvicorn.org/deployment/ and also includes a server block to disconnect when the host is not provided (i.e., attempted to connect directly to IP).
-
 TODO base on https://docs.gunicorn.org/en/stable/deploy.html because using uvicornworker in gunicorn, not uvicorn directly.
-
-Restart nginx
-
-```bash
-$ sudo /etc/init.d/nginx restart
-```
 
 ## Analysis scripts
 

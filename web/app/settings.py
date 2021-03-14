@@ -7,7 +7,7 @@ from pydantic import BaseSettings, Field
 # https://github.com/tiangolo/fastapi/issues/508#issuecomment-532360198
 class AppSettings(BaseSettings):
     # host name resolved using docker-compose network name
-    host: str = "db.pastpath_app"
+    host: str = Field(..., env="PASTPATH_DB_HOST")
     db_name: str = "postgres"
     port: int = Field(..., env="PASTPATH_DB_PORT")
 
