@@ -31,10 +31,8 @@ Local docker-compose:
 #### Overview
 
 1) Add static files not maintained in repo (web/app/static/img)
-2) Seed database
-3) Bring up db: `docker-compose -f docker-compose.prod.yml up -d db`
-3) Bring up web: `docker-compose -f docker-compose.prod.yml up -d web`
-3) Bring up nginx: `docker-compose -f docker-compose.prod.yml up -d nginx`
+2) Seed database (see below)
+3) Bring up containers (db, web, then nginx): `docker-compose -f docker-compose.prod.yml up -d`
 
 #### Details
 
@@ -54,31 +52,21 @@ The app runs out of a Docker container built on top of the `tiangolo/uvicorn-gun
 
 #### Start and seed database
 
-Assume existing database already exists and seed script exists (e.g. dumped to file with `$ pg_dump -d <db_name> > /path/to/seed/seed.sql`).
+Assume existing database already exists and seed script exists (e.g. dumped to file with `$ pg_dump -d <db_name> > ./backup/marker_db_dump.sql`).
 
 ```bash
-$ docker-compose up -d db
-$ docker-compose run -v /path/to/seed:/backup/ db bash
+$ docker-compose -f docker-compose.prod.yml up -d db
+$ docker-compose -f docker-compose.prod.yml run -v path/to/backup:/backup db bash
 ```
 
 Within database container, seed database:
 
 ```bash
-$ psql -U <username> -h db.pastpath_app -p <port> -f /backup/seed.sql
+$ psql -U <username> -h db.pastpath_app -p <port> -f /backup/marker_db_dump.sql
 $ exit
 ```
 
-#### Start web container
-
-```bash
-$ docker-compose up -d web
-```
-
-Configured to serve at port 8080.
-
-#### Start nginx
-
-TODO base on https://docs.gunicorn.org/en/stable/deploy.html because using uvicornworker in gunicorn, not uvicorn directly.
+Because the postgres data is mounted to a docker volume, the database contents are preserved with `docker-compose -f docker-compose.prod.yml down`. The contents are removed if the volume is also removed, e.g. with `docker-compose -f docker-compose.prod.yml down -v`.
 
 ## Analysis scripts
 
