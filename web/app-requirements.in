@@ -1,10 +1,8 @@
-uvicorn
+aiofiles
 fastapi~=0.52
 jinja2
-aiofiles
-gunicorn
 openrouteservice~=2.3
-ortools==6.10.6025
+ortools~=8.2
 numpy
 pandas
 sqlalchemy

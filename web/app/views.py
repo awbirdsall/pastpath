@@ -10,7 +10,7 @@ import pandas as pd
 import psycopg2
 
 from app.markers import get_closest_starting_markers, get_top_locations_close
-from app.route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
+from app.route import get_distance_matrix_response, optimal_route_from_matrix, directions_route_duration
 from app.settings import get_app_settings, get_instance_settings
 
 router = APIRouter()
@@ -101,7 +101,8 @@ async def get_route(request: Request, start_marker: int, radius: float):
     marker_names = [x.text[:30] for x in markers.itertuples()]
 
     # solve TSP
-    dist_matrix = calc_distance_matrix(marker_coords)
+    dist_matrix_response = get_distance_matrix_response(marker_coords)
+    dist_matrix = dist_matrix_response["durations"]
     optimal_coords, marker_order, _ = optimal_route_from_matrix(marker_coords,
         marker_names, dist_matrix, start=0)
     optimal_route, optimal_duration = directions_route_duration(optimal_coords)
