@@ -4,8 +4,6 @@ from typing import List
 from fastapi import APIRouter, Request, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import create_engine
-from sqlalchemy_utils import database_exists, create_database
 import pandas as pd
 import psycopg2
 
@@ -16,9 +14,6 @@ from app.settings import get_app_settings, get_instance_settings
 router = APIRouter()
 
 # connect to postgres
-db = create_engine('postgres://%s%s/%s'%(get_instance_settings().sql_user,
-                                         get_app_settings().host,
-                                         get_app_settings().db_name))
 con = psycopg2.connect(
         database=get_app_settings().db_name,
         user=get_instance_settings().sql_user,
