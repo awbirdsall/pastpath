@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  nginx:
+    restart: always
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - static_volume:/static
+    networks:
+      app:
+    depends_on:
+      - web
+  web:
+    build: ./web
+    environment:
+      - PASTPATH_DB_PORT=5436
+      - PORT=8080
+    env_file:
+      - ./.env.prod
+    volumes:
+      - static_volume:/app/app/static
+    depends_on:
+      - db
+    networks:
+      app:
+  db:
+    image: postgres:12.6-alpine
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - ./.env.prod.db
+    command: -p 5436
+    networks:
+      app:
+
+networks:
+  app:
+
+volumes:
+  static_volume:
+  postgres_data:

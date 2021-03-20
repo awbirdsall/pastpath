@@ -6,7 +6,7 @@ This service uses natural language processing to determine similarities between 
 
 ## Web app
 
-The code for a web app is in `app/`. The app is built using FastAPI and queries a PostgreSQL database containing historic marker information and the results of NLP analysis. The app has been deployed to an AWS EC2 instance using Gunicorn and Nginx and is hosted at <http://pastpath.tours>.
+The app is built using FastAPI and queries a PostgreSQL database containing historic marker information and the results of NLP analysis. The app has been deployed to an AWS EC2 instance using Gunicorn and Nginx and is hosted at <http://pastpath.tours>.
 
 ### Local testing
 
@@ -15,127 +15,58 @@ The app has been Dockerized using an image built on top of `tiangolo/uvicorn-gun
 To test the image locally:
 
 ```bash
-$ docker build -t pastpath .
-$ docker run --network=host pastpath
+$ docker-compose up
 ```
 
-This serves the app at `localhost:80`. The flag `--network=host` is used to make it easy not just to connect to the served app but also for the app to connect to a locally running postgresql database instance.
+This starts up the database and app and makes it accessible at `localhost:8080`. The `web` container running the app is connected to the `db` postgres container within a `pastpath_app_local` network via port 5436, which is only accessible via the network.
+
+Local docker-compose:
+
+- serves app at localhost:8080
+- mounts local volumes with both app and database data
+- uses `.env` and `.env.db` env_files
 
 ### Deployment
 
-TODO update to run out of Docker container
+#### Overview
 
-Install python and nginx
+1) Add static files not maintained in repo (web/app/static/img)
+2) Seed database (see below)
+3) Bring up containers (db, web, then nginx): `docker-compose -f docker-compose.prod.yml up -d`
 
-```bash
-$ sudo apt-get update
-$ sudo apt-get install -y python
-$ sudo apt-get install -y nginx
-$ source ~/.bashrc
-```
+#### Details
 
-Clone project from git
+Deployment is defined in `docker-compose.prod.yml` inspired by [this](https://testdriven.io/blog/dockerizing-django-with-postgres-gunicorn-and-nginx/#production-dockerfile).
 
-```bash
-$ git clone https://github.com/awbirdsall/pastpath.git
-```
+Production docker-compose:
 
-Use pipenv to install pinned versions of required packages, as defined in Pipfile.lock.
+- adds container running nginx that publishes to ports 80 and 443
+- uses a static_volume attached to both the nginx and web services containing the static files
+- uses `.env.prod` and `.env.prod.db` env_files
+- uses a postgres_data volume attached to the db service
+- containers reside in `pastpath_app` network
 
-```bash
-$ pip install pipenv
-$ pipenv install --deploy --ignore-pipfile
-```
+The entire application runs behind nginx as a proxy server, which quickly handles requests from the internet and is configured to serve the static files. Behind nginx, Gunicorn is used as a process manager for the app, and is run using Uvicorn workers. Uvicorn uses the asynchronous ASGI interface used by FastAPI.
 
-Set up postgresql
+The app runs out of a Docker container built on top of the `tiangolo/uvicorn-gunicorn-fastapi` image. The PostgreSQL database runs in a separate Docker container.
 
-```bash
-$ sudo apt install postgresql postgresql-contrib
-$ sudo service postgresql start
-```
+#### Start and seed database
 
-Set password for user (postgres default username)
+Assume existing database already exists and seed script exists (e.g. dumped to file with `$ pg_dump -d <db_name> > ./backup/marker_db_dump.sql`).
 
 ```bash
-$ sudo passwd postgres
+$ docker-compose -f docker-compose.prod.yml up -d db
+$ docker-compose -f docker-compose.prod.yml run -v path/to/backup:/backup db bash
 ```
 
-Populate the database on the EC2 instance over ssh tunnel:
-
-1) on remote DB, command 
-
-```sql
-ALTER USER my-db-user WITH ENCRYPTED PASSWORD 'my-db-password';
-```
-
-2) make ssh tunnel from arbitrary local client port to postgresql port 5432: 
-
-`$ ssh -L 63333:localhost:5432 defaultuser@remoteaddress`
-
-3) use tunnel port to connect to db as my-db-user
+Within database container, seed database:
 
 ```bash
-$ psql -h localhost -p 63333 -U postgres
+$ psql -U <username> -h db.pastpath_app -p <port> -f /backup/marker_db_dump.sql
+$ exit
 ```
 
-4) run pipeline script with `DB_LOC = 'production'` to write to production database. Only `--db` flag is required if all files already have been created.
-
-```bash
-$ python pipeline.py --db
-```
-
-Add pastpath/app/instance/config.py with values for that:
-
-```
-sql_user=USER_NAME_HERE
-sql_key=SQL_KEY_HERE
-ors_key=ORS_KEY_HERE
-```
-
-Transfer static image directory to app/static/img.
-
-Start nginx and configure
-
-```bash
-$ sudo /etc/init.d/nginx start
-$ sudo rm /etc/nginx/sites-enabled/default
-$ sudo touch /etc/nginx/sites-available/application
-$ sudo ln -s /etc/nginx/sites-available/application /etc/nginx/sites-enabled/application
-```
-
-Write configuration file for application:
-
-```bash
-$ sudo vim /etc/nginx/sites-enabled/application
-```
-
-Contents should be:
-
-```
-server {
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-    location /static {
-        alias /home/ubuntu/pastpath/app/static;
-    }
-}
-```
-
-Restart nginx
-
-```bash
-$ sudo /etc/init.d/nginx restart
-```
-
-Run gunicorn as background process
-
-```bash
-$ cd ~/pastpath/app
-$ gunicorn -k uvicorn.workers.UvicornWorker main:app -D
-```
+Because the postgres data is mounted to a docker volume, the database contents are preserved with `docker-compose -f docker-compose.prod.yml down`. The contents are removed if the volume is also removed, e.g. with `docker-compose -f docker-compose.prod.yml down -v`.
 
 ## Analysis scripts
 
@@ -148,14 +79,7 @@ Much of the NLP analysis is performed ahead of time, before the user interacts w
 
 ## Web app dependencies
 
-- `fastapi`
-- `numpy`
-- `openrouteservice`
-- `ortools`
-- `pandas`
-- `psycopg2`
-- `sqlalchemy`
-- `sqlalchemy_utils`
+See `web/app-requirements.in` and `web/app-requirements.txt` (generated with pip-tools).
 
 ## Analysis script dependencies
 

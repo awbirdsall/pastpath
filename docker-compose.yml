@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  web:
+    build: ./web
+    command: /start-reload.sh
+    ports:
+      - 8080:8080
+    env_file:
+      - ./.env
+    volumes:
+      - ./web:/app
+    depends_on:
+      - db
+    networks:
+      app_local:
+  db:
+    image: postgres:12.6-alpine
+    restart: always
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    env_file:
+      - ./.env.db
+    command: -p 5436
+    networks:
+      app_local:
+
+networks:
+  app_local:

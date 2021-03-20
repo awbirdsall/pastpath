@@ -4,29 +4,25 @@ from typing import List
 from fastapi import APIRouter, Request, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import create_engine
-from sqlalchemy_utils import database_exists, create_database
 import pandas as pd
 import psycopg2
 
-from markers import get_closest_starting_markers, get_top_locations_close
-from route import calc_distance_matrix, optimal_route_from_matrix, directions_route_duration
-from settings import get_app_settings, get_instance_settings
+from app.markers import get_closest_starting_markers, get_top_locations_close
+from app.route import get_distance_matrix_response, optimal_route_from_matrix, directions_route_duration
+from app.settings import get_app_settings, get_instance_settings
 
 router = APIRouter()
 
 # connect to postgres
-db = create_engine('postgres://%s%s/%s'%(get_instance_settings().sql_user,
-                                         get_app_settings().host,
-                                         get_app_settings().db_name))
 con = psycopg2.connect(
         database=get_app_settings().db_name,
         user=get_instance_settings().sql_user,
         host=get_app_settings().host,
+        port=get_app_settings().port,
         password=get_instance_settings().sql_key
         )
 
-templates = Jinja2Templates(directory='templates')
+templates = Jinja2Templates(directory='app/templates')
 
 @router.get('/')
 @router.get('/index')
@@ -100,7 +96,8 @@ async def get_route(request: Request, start_marker: int, radius: float):
     marker_names = [x.text[:30] for x in markers.itertuples()]
 
     # solve TSP
-    dist_matrix = calc_distance_matrix(marker_coords)
+    dist_matrix_response = get_distance_matrix_response(marker_coords)
+    dist_matrix = dist_matrix_response["durations"]
     optimal_coords, marker_order, _ = optimal_route_from_matrix(marker_coords,
         marker_names, dist_matrix, start=0)
     optimal_route, optimal_duration = directions_route_duration(optimal_coords)

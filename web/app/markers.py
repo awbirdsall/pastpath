@@ -1,8 +1,9 @@
 '''pastpath.markers : functions for historic marker calculations
 '''
 import math
-import numpy as np
 import sys
+
+import numpy as np
 
 def get_closest_starting_markers(lat, lon, df, n):
     print(df.shape)
