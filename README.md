@@ -28,9 +28,11 @@ Local docker-compose:
 
 ### Deployment
 
+Following steps assume running on an EC2 instance with docker-compose installed and this repo cloned.
+
 #### Overview
 
-1) Add static files not maintained in repo (web/app/static/img)
+1) Add .env and static files not maintained in repo (`.env.prod`, `.env.prod.db`, `web/app/static/img/*.jpg`)
 2) Seed database (see below)
 3) Bring up containers (db, web, then nginx): `docker-compose -f docker-compose.prod.yml up -d`
 
