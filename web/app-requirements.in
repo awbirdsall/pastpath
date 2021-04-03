@@ -1,8 +1,0 @@
-aiofiles
-jinja2~=2.11
-openrouteservice~=2.3
-ortools~=8.2
-numpy~=1.18
-pandas~=1.2
-psycopg2-binary~=2.8
-python-dotenv~=0.12
