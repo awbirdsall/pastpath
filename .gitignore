@@ -5,3 +5,7 @@ __pycache__/
 *.pyc
 scripts/config.py
 web/app/static/img/
+nginx/site/static/img/
+backend/app/static/img/
+data/
+.env*

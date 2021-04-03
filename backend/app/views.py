@@ -24,10 +24,6 @@ con = psycopg2.connect(
 
 templates = Jinja2Templates(directory='app/templates')
 
-@router.get('/input_loc')
-async def input_loc(request: Request):
-    return templates.TemplateResponse("input.html", context={"request": request})
-
 
 @router.post('/choose_start')
 async def choose_start(start_choice: StartChoice):
@@ -148,9 +144,3 @@ async def get_route(step_two: StepTwo):
         optimal_duration=optimal_duration
     )
     return route
-
-    # return templates.TemplateResponse("output.html",
-    #         context={'request': request, 'markers': markers,
-    #             'map_center': map_center, 'route_polylines': route_polylines,
-    #             'marker_order': marker_order, 'route_str': route_str,
-    #             'optimal_duration': optimal_duration})

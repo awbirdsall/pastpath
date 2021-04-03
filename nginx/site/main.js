@@ -151,24 +151,21 @@ function listMarkersTable(markers) {
     for (i = 0; i < markers.length; i++) {
         var currentMarker = markers[i];
         var newRow = `
-          <tr>
-            <td>
-             <div class="radio">
-               <input type="radio" name='start_marker' value=${currentMarker.marker_id} id=${currentMarker.marker_id}/>
-               <label for=${currentMarker.marker_id}>Choose this</label>
-             </div>
-            </td>
-            <td>
-              <a href="${currentMarker.url}">${currentMarker.title}</a>
-            </td>
-            <td>
-              ${currentMarker.text_clean.slice(0, 280)}...
-            </td>
-            <td>
-              <img src="${currentMarker.img_src}" width=200px />
-            </td>
-          </tr>
-          `;
+            <tr>
+                <td>
+                 <div class="radio">
+                     <input type="radio" name='start_marker' value=${currentMarker.marker_id} id=${currentMarker.marker_id}/>
+                     <label for=${currentMarker.marker_id}>Choose this</label>
+                 </div>
+                </td>
+                <td><a href="${currentMarker.url}">
+                        ${currentMarker.title}
+                    </a>
+                </td>
+                <td>${currentMarker.text_clean.slice(0, 280)}...</td>
+                <td><img src="${currentMarker.img_src}" width=200px /></td>
+            </tr>
+            `;
         newRows += newRow;
     }
     $('#markersTable').append(newRows);

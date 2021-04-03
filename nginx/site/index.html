@@ -55,7 +55,7 @@
       </div>
 
     <form name="inputForm" id="inputForm" onsubmit="return validateForm()"
-        action="api/choose_start" method="POST">
+        action="api/v1/choose_start" method="POST">
         <div class="row">
           <section class="col col-3">
             <label class="input">
@@ -113,7 +113,7 @@
           you? Your route will include similar markers.</p>
       <div class="container">
         <form name="chooseStart" id="chooseStart"
-            action="api/output" onsubmit="return validateForm()" method="GET">
+            action="api/v1/output" onsubmit="return validateForm()" method="GET">
 
         <table class="table table-hover" id="markersTable">
             <!-- options populated from step one response -->

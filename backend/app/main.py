@@ -5,11 +5,12 @@ import uvicorn
 
 from app import views
 
-app = FastAPI()
+app = FastAPI(root_path="/api/v1")
+# TODO does this get served out of nginx or not
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 origins = [
-    # TODO generalize CORS appropriately
+    # TODO handle CORS appropriately, if needed
     "http://web",
     "http://web:8080",
     "127.18.0.3",

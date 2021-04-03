@@ -1,17 +1,16 @@
 version: "3.8"
 
 services:
-  web:
-    build: ./web
-    command: http-server -c-1 /app
+  nginx:
+    build: ./nginx
     ports:
-      - 8080:8080
+      - 8080:80
     env_file:
       - ./.env
     volumes:
-      - ./web/app:/app
+      - ./nginx/site:/var/www/html/
     depends_on:
-      - db
+      - backend
     networks:
       app_local:
   backend:
