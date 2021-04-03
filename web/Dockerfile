@@ -1,8 +1,5 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8-slim
+FROM node:lts
 
-copy app-requirements.txt .
+RUN npm install http-server -g
 
-RUN pip install --upgrade pip &&\
-    pip install -r app-requirements.txt
-
-COPY ./app /app/app
+COPY app/ .
