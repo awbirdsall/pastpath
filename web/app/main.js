@@ -194,7 +194,7 @@ function showRouteTable(markers) {
                 <td><a href="${currentMarker.url}">
                         ${currentMarker.title}
                     </a>
-                <td>
+                </td>
                 <td>${currentMarker.text_clean.slice(0, 280)}...</td>
                 <td><img src="${currentMarker.img_src}" width=200px /></td>
                 <td>${currentMarker.marker_ents}</td>
