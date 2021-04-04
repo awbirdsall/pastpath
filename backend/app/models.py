@@ -1,3 +1,4 @@
+"""Data models for backend"""
 from typing import List, Optional
 
 from fastapi import Query
@@ -35,6 +36,6 @@ class Route(BaseModel):
     optimal_duration: float
 
 
-class StepTwo(BaseModel):
+class RouteRequest(BaseModel):
     radius: float
     start_marker: int

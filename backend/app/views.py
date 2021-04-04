@@ -2,12 +2,11 @@ import ast
 
 from fastapi import APIRouter, Request, Query
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 import pandas as pd
 import psycopg2
 
 from app.markers import get_closest_starting_markers, get_top_locations_close
-from app.models import StartChoice, Marker, NearbyOptions, Route, StepTwo
+from app.models import StartChoice, Marker, NearbyOptions, Route, RouteRequest
 from app.route import get_distance_matrix_response, optimal_route_from_matrix, directions_route_duration
 from app.settings import get_app_settings, get_instance_settings
 
@@ -22,11 +21,9 @@ con = psycopg2.connect(
         password=get_instance_settings().sql_key
         )
 
-templates = Jinja2Templates(directory='app/templates')
-
 
 @router.post('/choose_start')
-async def choose_start(start_choice: StartChoice):
+async def choose_start(start_choice: StartChoice) -> NearbyOptions:
     # start is limited by choice of clusters and distance from location
     clusters = start_choice.cluster
     print("clusters: {}".format(clusters))
@@ -66,8 +63,8 @@ async def choose_start(start_choice: StartChoice):
 
 
 @router.post('/output')
-async def get_route(step_two: StepTwo):
-    radius = step_two.radius * 1.61 # convert miles to km
+async def get_route(route_request: RouteRequest) -> Route:
+    radius = route_request.radius * 1.61 # convert miles to km
 
     # get places dataframe
     markers_query = "SELECT marker_id, title, lat, lon, text, text_clean, images, categories, url FROM hmdb_data_table WHERE cty='washington_dc';"
@@ -81,7 +78,7 @@ async def get_route(step_two: StepTwo):
     print("get_route df_similarities.head():")
     print(df_similarities.head())
 
-    top_n_id = get_top_locations_close(step_two.start_marker, df_similarities, 7,
+    top_n_id = get_top_locations_close(route_request.start_marker, df_similarities, 7,
             df_markers, radius)
     print("get_route top_n_id:")
     print(top_n_id)
