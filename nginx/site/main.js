@@ -70,7 +70,7 @@ drawMarkersMap = function (markers) {
 }
 
 
-// and here a call example
+// submit form with location and cluster interests
 $("#inputForm").submit(function(e) {
 
     e.preventDefault(); // do not execute the actual submit of the form
@@ -95,6 +95,7 @@ $("#inputForm").submit(function(e) {
     makePostCall(url, data)
       .done(function( data, textStatus, jqXHR ){
           console.log("made call! status:", textStatus);
+          $(window).scrollTop(0);
           drawMarkersMap(data["markers"]);
           $("#stepone").addClass("inactive");
           $("#steptwo").removeClass("inactive");
@@ -115,26 +116,33 @@ $("#chooseStart").submit(function(e) {
     var form = $(this);
     var formdata = form.serializeArray();
     console.log(formdata);
+
     var data = {};
     // convert name, value structure into expected json of start_marker and
     // radius
     $(formdata ).each(function(index, obj){
          data[obj.name] = obj.value;
     });
+
+    // update display to loading state
+    $(window).scrollTop(0);
+    $("#steptwo").addClass("inactive");
+    $("#loadingDonut").removeClass("inactive");
+
     // todo fix hard-coded url to call
     var url = form.attr('action');
     makePostCall(url, data)
       .done(function( data, textStatus, jqXHR ){
           console.log("made call! status:", textStatus);
           console.log(data);
+          $("#loadingDonut").addClass("inactive");
           showRouteMap(data["markers"], data["route_polylines"]);
-          $("#steptwo").addClass("inactive");
           $("#stepthree").removeClass("inactive");
           showRouteTable(data["markers"]);
           console.log(data["route_str"]);
           console.log(data["optimal_duration"]);
           $("#routeOverview").html("<b>Route overview:</b> " + data["route_str"]);
-          $("#routeDuration").html("<b>Optimized route duration:</b> " + data["optimal_duration"]);
+          $("#routeDuration").html("<b>Optimized route duration:</b> " + data["optimal_duration"] + " minutes");
       })
       .fail(function( jqXHR, textStatus, errorThrown ){
              console.log("makepostcall failed:");

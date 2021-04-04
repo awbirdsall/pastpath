@@ -23,6 +23,7 @@
 
   <body>
 
+
     <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
       <a class="navbar-brand" href="#">PastPath</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,6 +47,10 @@
 
     <!-- leaflet map -->
     <div id="map" style="height: 400px;"></div>
+
+	<div id="donutContainer" class="donut-container starter-template">
+      <div id="loadingDonut" class="donut inactive"></div>
+	</div>
 
     <div id="stepone">
       <div class="container">
@@ -165,9 +170,6 @@
     <script src="../static/js/bootstrap.min.js"></script>
     <script src="../static/js/popper.js"></script>
     <!-- lovingly handcrafted js for form validation, etc. -->
-    <script type="text/javascript">
-    </script>
-
     <script src="main.js"></script>
 
   
