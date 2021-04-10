@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="https://getbootstrap.com/favicon.ico">
+
+    <title>PastPath</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../static/css/starter-template.css" rel="stylesheet">
+
+    <!-- leaflet -->
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+  </head>
+
+  <body>
+
+
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+      <a class="navbar-brand" href="#">PastPath</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+              <a class="nav-link" href="/index.html">Start <span class="sr-only">(current)</span></a>
+          </li>
+      </div>
+    </nav>
+
+    <main role="main" class="container">
+
+      <div class="starter-template">
+        <h1>PastPath</h1>
+        <h3><i>Fast customized Washington D.C. historic marker walking
+                tours</i></h3>
+
+    <!-- leaflet map -->
+    <div id="map" style="height: 400px;"></div>
+
+	<div id="donutContainer" class="donut-container starter-template">
+      <div id="loadingDonut" class="donut inactive"></div>
+	</div>
+
+    <div id="stepone">
+      <div class="container">
+        <h2>Starting location and interests</h2>
+        <p class="lead">Where are you starting and what are you interested in? We'll find some options near you.</p>
+        <p class="lead"><b>1st, choose a starting location</b> on the map:</p>
+      </div>
+
+    <form name="inputForm" id="inputForm" onsubmit="return validateForm()"
+        action="api/v1/choose_start" method="POST">
+        <div class="row">
+          <section class="col col-3">
+            <label class="input">
+              <input id="latInput" placeholder="Latitude" name="lat" />
+            </label>
+          </section>
+          <section class="col col-3">
+            <label class="input">
+              <input id="lonInput" placeholder="Longitude" name="lon" />
+            </label>
+          </section>
+        </div>
+
+        <div class="container">
+            <p class="lead">
+            <b>2nd, choose one or more</b> of the following subject areas you're
+            interested in:
+            </p>
+            <input type="checkbox" name="cluster" value="0" id="c0">
+                <label for="c0">1810s, War of 1812, British, ...</label><br>
+            <input type="checkbox" name="cluster" value="1" id="c1">
+                <label for="c1">Politics, Notable Persons, Notable Buildings, ...</label><br>
+            <input type="checkbox" name="cluster" value="2" id="c2">
+                <label for="c2">Churches and Religion, 1970s, African American, ...</label><br>
+            <input type="checkbox" name="cluster" value="3" id="c3">
+                <label for="c3">Waterways and Vessels, Air and Space, Military, ...</label><br>
+            <input type="checkbox" name="cluster" value="4" id="c4">
+                <label for="c4">Science and Medicine, George Washington
+                    University, Education, ...
+                    </label><br>
+            <input type="checkbox" name="cluster" value="5" id="c5">
+                <label for="c5">Environment, Animals, National Zoo, ...</label><br>
+            <input type="checkbox" name="cluster" value="6" id="c6">
+                <label for="c6">DC Commission Arts and Humanities, Planning and
+                    Economic Development ...</label><br>
+            <input type="checkbox" name="cluster" value="7" id="c7">
+                <label for="c7">Industry and Commerce, 1960s, 1900s, ...</label><br>
+            <input type="checkbox" name="cluster" value="8" id="c8">
+                <label for="c8">Civil War, 1860s, Abraham Lincoln, ...</label><br>
+            <input type="checkbox" name="cluster" value="9" id="c9">
+                <label for="c9">African American, Howard University, Civil Rights, ...</label><br>
+        </div>
+
+            <div class="container" align="center">
+                <button type="submit" class="btn btn-default btn-lg"><b>Find
+                        nearby markers!</b></button>
+            </div>
+    </form>
+    </div>
+
+    <div id="steptwo" class="inactive">
+        <h2>Choose starting marker</h2>
+          <p class="lead">Here are some nearby markers we think you'll
+          like based on your interests. Which one is most interesting to
+          you? Your route will include similar markers.</p>
+      <div class="container">
+        <form name="chooseStart" id="chooseStart"
+            action="api/v1/output" onsubmit="return validateForm()" method="GET">
+
+        <table class="table table-hover" id="markersTable">
+            <!-- options populated from step one response -->
+            <tr>
+                <th></th>
+                <th>title</th>
+                <th>sample text</th>
+                <th>image</th>
+            </tr>
+        </table>
+
+        <div class="form-group">
+            <label for="radius">Maximum distance from start (mi)</label>
+            <input type="text" id="radius" name="radius" value="1">
+        </div>
+
+        <div align="center">
+            <button type="submit" class="btn btn-default btn-lg"><b>Get
+                    route!</b></button>
+        </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+    <div id="stepthree" class="inactive">
+        <h2>View route</h2>
+        <p id="routeOverview"></p>
+        <p id="routeDuration"></p>
+
+              <h4>Route Table</h4>
+
+        <table class="table table-hover" id="routeTable">
+            <tr>
+                <th>Stop #</th>
+                <th>Title</th>
+                <th>Abbreviated text</th>
+                <th>Image</th>
+                <th>Keywords</th>
+            </tr>
+        </table>
+    </div>
+
+    </main><!-- /.container -->
+
+    <script src="../static/js/jquery-3.6.0.js" integrity="sha384-S58meLBGKxIiQmJ/pJ8ilvFUcGcqgla+mWH9EEKGm6i6rKxSTA2kpXJQJ8n7XK4w" crossorigin="anonymous"></script>
+    <script src="../static/js/bootstrap.min.js"></script>
+    <script src="../static/js/popper.js"></script>
+    <!-- lovingly handcrafted js for form validation, etc. -->
+    <script src="main.js"></script>
+
+  
+</body></html>

@@ -1,15 +1,27 @@
 version: "3.8"
 
 services:
-  web:
-    build: ./web
-    command: /start-reload.sh
+  nginx:
+    build: ./nginx
     ports:
-      - 8080:8080
+      - 8080:80
     env_file:
       - ./.env
     volumes:
-      - ./web:/app
+      - ./nginx/site:/var/www/html/
+    depends_on:
+      - backend
+    networks:
+      app_local:
+  backend:
+    build: ./backend
+    command: /start-reload.sh
+    ports:
+      - 8081:8080
+    env_file:
+      - ./.env
+    volumes:
+      - ./backend:/app
     depends_on:
       - db
     networks:

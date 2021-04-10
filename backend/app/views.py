@@ -1,13 +1,12 @@
 import ast
-from typing import List
 
 from fastapi import APIRouter, Request, Query
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
 import pandas as pd
 import psycopg2
 
 from app.markers import get_closest_starting_markers, get_top_locations_close
+from app.models import StartChoice, Marker, NearbyOptions, Route, RouteRequest
 from app.route import get_distance_matrix_response, optimal_route_from_matrix, directions_route_duration
 from app.settings import get_app_settings, get_instance_settings
 
@@ -22,18 +21,11 @@ con = psycopg2.connect(
         password=get_instance_settings().sql_key
         )
 
-templates = Jinja2Templates(directory='app/templates')
 
-@router.get('/')
-@router.get('/index')
-@router.get('/input_loc')
-async def input_loc(request: Request):
-    return templates.TemplateResponse("input.html", context={"request": request})
-
-@router.get('/choose_start')
-async def choose_start(request: Request, lat: float, lon: float, cluster: List[str] = Query(None)):
+@router.post('/choose_start')
+async def choose_start(start_choice: StartChoice) -> NearbyOptions:
     # start is limited by choice of clusters and distance from location
-    clusters = cluster
+    clusters = start_choice.cluster
     print("clusters: {}".format(clusters))
 
     # get places in selected clusters
@@ -45,7 +37,8 @@ async def choose_start(request: Request, lat: float, lon: float, cluster: List[s
 
     # calculate N closest markers
     # returns rows of df_markers
-    markers = get_closest_starting_markers(lat, lon, df_markers, 7)
+    markers = get_closest_starting_markers(start_choice.lat, start_choice.lon,
+            df_markers, 7).copy()
     print("choose_start(): markers")
     print(markers)
     print(markers.columns)
@@ -59,12 +52,19 @@ async def choose_start(request: Request, lat: float, lon: float, cluster: List[s
     markers['img_src'] = img_srcs
     map_center = [markers.lat.mean(), markers.lon.mean()]
 
-    return templates.TemplateResponse("choose_start.html",
-            context={'request': request, 'markers': markers, 'map_center': map_center})
+    # convert dataframe to marker objects for json response
+    marker_objs = [Marker(**marker) for marker in markers.to_dict("records")]
+    print(f"creating nearby_options with {marker_objs}, {map_center}")
+    nearby_options = NearbyOptions(
+        markers=marker_objs,
+        map_center=map_center
+    )
+    return nearby_options
 
-@router.get('/output')
-async def get_route(request: Request, start_marker: int, radius: float):
-    radius = radius * 1.61 # convert miles to km
+
+@router.post('/output')
+async def get_route(route_request: RouteRequest) -> Route:
+    radius = route_request.radius * 1.61 # convert miles to km
 
     # get places dataframe
     markers_query = "SELECT marker_id, title, lat, lon, text, text_clean, images, categories, url FROM hmdb_data_table WHERE cty='washington_dc';"
@@ -78,7 +78,7 @@ async def get_route(request: Request, start_marker: int, radius: float):
     print("get_route df_similarities.head():")
     print(df_similarities.head())
 
-    top_n_id = get_top_locations_close(start_marker, df_similarities, 7,
+    top_n_id = get_top_locations_close(route_request.start_marker, df_similarities, 7,
             df_markers, radius)
     print("get_route top_n_id:")
     print(top_n_id)
@@ -130,8 +130,14 @@ async def get_route(request: Request, start_marker: int, radius: float):
     marker_id_strs = [str(x).zfill(6) for x in markers['marker_id']]
     img_srcs = ["static/img/{}_{}_small.jpg".format(x,y) for (x,y) in zip(marker_id_strs, img_ids)]
     markers['img_src'] = img_srcs
-    return templates.TemplateResponse("output.html",
-            context={'request': request, 'markers': markers,
-                'map_center': map_center, 'route_polylines': route_polylines,
-                'marker_order': marker_order, 'route_str': route_str,
-                'optimal_duration': optimal_duration})
+
+    marker_objs = [Marker(**marker) for marker in markers.to_dict("records")]
+    route = Route(
+        markers=marker_objs,
+        map_center=map_center,
+        route_polylines=route_polylines,
+        marker_order=marker_order,
+        route_str=route_str,
+        optimal_duration=optimal_duration
+    )
+    return route
