@@ -9,6 +9,7 @@ services:
       - "443:443"
     volumes:
       - static_volume:/static
+      - nginx_logs:/var/log/nginx
     networks:
       app:
     depends_on:
@@ -43,3 +44,4 @@ networks:
 volumes:
   static_volume:
   postgres_data:
+  nginx_logs:
